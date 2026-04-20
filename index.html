@@ -44,6 +44,33 @@
             </div>
         </section>
 
+        <div class="data-breakout-band fade-up" id="metrics-container-intro">
+            <div class="container text-center">
+                <div class="metrics-row metrics-grid-5">
+                    <div class="metric-card metric-item-intro">
+                        <div class="m-val-wrap"><span class="m-val counter" data-target="1.2">0</span><span class="m-unit">M</span></div>
+                        <span class="m-label">Affected People</span>
+                    </div>
+                    <div class="metric-card metric-item-intro">
+                        <div class="m-val-wrap"><span class="m-val counter" data-target="658">0</span><span class="m-unit">K</span></div>
+                        <span class="m-label">Targeted for Assistance</span>
+                    </div>
+                    <div class="metric-card metric-item-intro">
+                        <div class="m-val-wrap"><span class="m-val counter" data-target="646">0</span></div>
+                        <span class="m-label" style="color: var(--crimson);">Fatalities</span>
+                    </div>
+                    <div class="metric-card metric-item-intro">
+                        <div class="m-val-wrap"><span class="m-val counter" data-target="114">0</span><span class="m-unit">K</span></div>
+                        <span class="m-label">Damaged Houses</span>
+                    </div>
+                    <div class="metric-card metric-item-intro">
+                        <div class="m-val-wrap"><span class="m-val counter" data-target="233">0</span><span class="m-unit">K</span></div>
+                        <span class="m-label">Displaced at Peak</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="stage-lane mt-base fade-up">
             <section id="sect-spirals" class="ditwah-section" style="padding-top: 0; position: relative;">
                 
@@ -112,25 +139,6 @@
                 <blockquote class="pull-quote fade-up">
                     <p>"Access was entirely severed within the first twenty-four hours."</p>
                 </blockquote>
-            </div>
-            
-            <div class="data-breakout-band fade-up" id="metrics-container">
-                <div class="container text-center">
-                    <div class="metrics-row">
-                        <div class="metric-card metric-item">
-                            <div class="m-val-wrap"><span class="m-val counter" data-target="2.3">0</span><span class="m-unit">M</span></div>
-                            <span class="m-label">Citizens Impacted</span>
-                        </div>
-                        <div class="metric-card metric-item">
-                            <div class="m-val-wrap"><span class="m-val counter" data-target="646">0</span></div>
-                            <span class="m-label">Confirmed Deaths</span>
-                        </div>
-                        <div class="metric-card metric-item">
-                            <div class="m-val-wrap"><span class="m-val counter" data-target="206">0</span></div>
-                            <span class="m-label">Roads Blocked</span>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="stage-lane mt-large fade-up">
@@ -307,8 +315,31 @@
                             </div>
                         </div>
 
-                        <div class="viz-container">
+                        <div class="viz-container desktop-matrix">
                             <canvas id="matrix-canvas"></canvas>
+                        </div>
+                        
+                        <div class="mobile-matrix-grid">
+                            <div class="mobile-matrix-item" style="border-left-color: var(--crimson);">
+                                <span class="m-title">Structurally Damaged</span>
+                                <span class="m-val" style="color: var(--crimson);">1,339</span>
+                                <div class="m-bar"><div class="m-fill" style="width: 13.2%; background: var(--crimson);"></div></div>
+                            </div>
+                            <div class="mobile-matrix-item" style="border-left-color: var(--ink);">
+                                <span class="m-title">Emergency Shelter</span>
+                                <span class="m-val" style="color: var(--ink);">500</span>
+                                <div class="m-bar"><div class="m-fill" style="width: 5%; background: var(--ink);"></div></div>
+                            </div>
+                            <div class="mobile-matrix-item" style="border-left-color: var(--dust);">
+                                <span class="m-title">Unable to Reopen</span>
+                                <span class="m-val" style="color: var(--dust);">147</span>
+                                <div class="m-bar"><div class="m-fill" style="width: 1.4%; background: var(--dust);"></div></div>
+                            </div>
+                            <div class="mobile-matrix-item" style="border-left-color: var(--azure);">
+                                <span class="m-title">Theoretically Open</span>
+                                <span class="m-val" style="color: var(--azure);">8,090</span>
+                                <div class="m-bar"><div class="m-fill" style="width: 80.3%; background: var(--azure);"></div></div>
+                            </div>
                         </div>
 
                         <div class="footer">
@@ -343,11 +374,18 @@
 
                     <div class="funding-spread">
                         <div class="stage">
-                            <div class="mobile-funding-labels">
+                            <div class="mobile-funding-labels mobile-only">
                                 <div class="m-label-row"><span class="m-target">Target: $35.3M</span></div>
+                                <div class="m-funding-bar-container">
+                                    <div class="m-funding-fill" style="width: 63.7%;"></div>
+                                </div>
+                                <div class="m-label-row m-flex-spread">
+                                    <span class="m-funding-val">$22.5M Funded</span>
+                                    <span class="m-funding-gap">$12.8M Gap</span>
+                                </div>
                             </div>
 
-                            <div class="vessel-area" id="funding-interaction">
+                            <div class="vessel-area desktop-only" id="funding-interaction">
                                 <div class="vessel-frame" id="hpp-vessel">
                                     <div class="target-cap"></div>
                                     <div class="vessel-fill" id="vessel-fill-anim"></div>
@@ -373,7 +411,7 @@
                                 </div>
                             </div>
 
-                            <div class="conduit-area" id="shadow-flow">
+                            <div class="conduit-area desktop-only" id="shadow-flow">
                                 <div class="conduit-label">Shadow Funding</div>
                                 <div class="conduit-pipe"></div>
                                 <p class="conduit-desc">Bypassing Coordinated Response</p>
