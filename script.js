@@ -1,10 +1,11 @@
 document.addEventListener("DOMContentLoaded", () => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // Refresh ScrollTrigger periodically to fix layout shifts
     window.addEventListener("resize", () => { ScrollTrigger.refresh(); });
 
-    // 1. Reading Progress Bar
+    // =========================================
+    // 1. READING PROGRESS BAR
+    // =========================================
     window.addEventListener('scroll', () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -14,29 +15,51 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // 2. STAGGERED METRICS COUNTER
+    // =========================================
+    // 2. MOBILE INTRO READ MORE TOGGLE
+    // =========================================
+    const introBtn = document.getElementById('introReadMoreBtn');
+    const introContent = document.getElementById('introExpandContent');
+    if (introBtn && introContent) {
+        introBtn.addEventListener('click', () => {
+            introContent.style.display = 'block';
+            introBtn.style.display = 'none';
+            ScrollTrigger.refresh(); // recalculate after DOM change
+        });
+    }
+
+    // =========================================
+    // 3. STAGGERED METRICS COUNTER
+    // FIX: trigger pushed to top 60% so animation plays when cards are clearly visible
+    // FIX: counters animate from 0 on scroll, not on page load
+    // =========================================
     const metricsContainer = document.getElementById("metrics-container");
     if (metricsContainer) {
         ScrollTrigger.create({
             trigger: metricsContainer,
-            start: "top 90%",
+            start: "top 60%",   // was 75% — now fires when element is well in view
             once: true,
             onEnter: () => {
-                gsap.to(".metric-item", { y: 0, opacity: 1, duration: 0.8, stagger: 0.2, ease: "power2.out" });
-                
+                gsap.to(".metric-item", {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.9,
+                    stagger: 0.18,
+                    ease: "power2.out"
+                });
                 document.querySelectorAll('.counter').forEach(el => {
                     const target = parseFloat(el.getAttribute('data-target'));
-                    const isFloat = target % 1 !== 0; 
-                    let proxy = { val: 0 }; 
-                    
+                    const isFloat = target % 1 !== 0;
+                    let proxy = { val: 0 };
                     gsap.to(proxy, {
                         val: target,
-                        duration: 2.5, 
-                        delay: 0.2, 
+                        duration: 2.2,
+                        delay: 0.3,
+                        ease: "power2.out",
                         onUpdate: function() {
-                            el.innerText = isFloat 
-                                ? proxy.val.toFixed(1) 
-                                : Math.floor(proxy.val).toLocaleString(); 
+                            el.innerText = isFloat
+                                ? proxy.val.toFixed(1)
+                                : Math.floor(proxy.val).toLocaleString();
                         }
                     });
                 });
@@ -44,72 +67,68 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // 3. Comparison Slider (FIXED DRAG/EXPAND BUG)
+    // =========================================
+    // 4. COMPARISON SLIDER
+    // =========================================
     const slider = document.getElementById('comparison-slider');
     const handle = document.getElementById('handle');
     const beforeLayer = document.getElementById('before-layer');
     let isDragging = false;
 
-    if(slider && handle) {
+    if (slider && handle) {
         const moveSlider = (clientX) => {
             const rect = slider.getBoundingClientRect();
-            // Force strict boundaries so dragging right doesn't break the page
             let x = Math.max(0, Math.min(clientX - rect.left, rect.width));
             const percent = (x / rect.width) * 100;
             beforeLayer.style.width = percent + "%";
             handle.style.left = percent + "%";
         };
-
         const onMove = (e) => {
             if (!isDragging) return;
             const x = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             moveSlider(x);
         };
-
         handle.addEventListener('mousedown', () => isDragging = true);
         window.addEventListener('mouseup', () => isDragging = false);
         window.addEventListener('mousemove', onMove);
-        handle.addEventListener('touchstart', (e) => { isDragging = true; }, { passive: true });
+        handle.addEventListener('touchstart', () => { isDragging = true; }, { passive: true });
         window.addEventListener('touchend', () => isDragging = false);
-        window.addEventListener('touchmove', (e) => { if (isDragging) { onMove(e); } }, { passive: true });
+        window.addEventListener('touchmove', (e) => { if (isDragging) onMove(e); }, { passive: true });
     }
 
-    // 4. Map Carousel
+    // =========================================
+    // 5. MAP CAROUSEL
+    // =========================================
     const mapCarousel = document.getElementById('mapCarousel');
     const prevBtn = document.querySelector('.prev-arrow');
     const nextBtn = document.querySelector('.next-arrow');
 
-    if(mapCarousel && prevBtn && nextBtn) {
+    if (mapCarousel && prevBtn && nextBtn) {
         nextBtn.addEventListener('click', () => { mapCarousel.scrollBy({ left: mapCarousel.clientWidth, behavior: 'smooth' }); });
         prevBtn.addEventListener('click', () => { mapCarousel.scrollBy({ left: -mapCarousel.clientWidth, behavior: 'smooth' }); });
     }
 
-    // 5. Map Modal Lightbox
+    // =========================================
+    // 6. MAP MODAL LIGHTBOX (Pan & Zoom)
+    // =========================================
     const modal = document.getElementById("mapModal");
     const mapBtn = document.getElementById("openMapBtn");
     const span = document.getElementsByClassName("close-modal")[0];
     const fullMapImg = document.getElementById("fullMapImg");
     const panContainer = document.getElementById("pan-container");
-    const mapSidebarItems = document.querySelectorAll('.sidebar-item');
 
     if (modal && mapBtn && span && fullMapImg && panContainer) {
-        mapBtn.onclick = function() {
+        mapBtn.onclick = function () {
             modal.classList.add("show");
-            document.body.style.overflow = "hidden"; 
-            
-            setTimeout(() => {
-                panContainer.scrollTop = 0;
-                panContainer.scrollLeft = 0;
-                gsap.fromTo(mapSidebarItems, 
-                    { opacity: 0, x: 20 }, 
-                    { opacity: 1, x: 0, duration: 0.5, stagger: 0.15, delay: 0.2, ease: "power2.out" }
-                );
-            }, 10);
-        }
-        
-        span.onclick = function() { modal.classList.remove("show"); fullMapImg.classList.remove("zoomed"); document.body.style.overflow = "auto"; }
-        
-        fullMapImg.onclick = function() {
+            document.body.style.overflow = "hidden";
+            setTimeout(() => { panContainer.scrollTop = 0; panContainer.scrollLeft = 0; }, 10);
+        };
+        span.onclick = function () {
+            modal.classList.remove("show");
+            fullMapImg.classList.remove("zoomed");
+            document.body.style.overflow = "";
+        };
+        fullMapImg.onclick = function () {
             fullMapImg.classList.toggle("zoomed");
             if (fullMapImg.classList.contains("zoomed")) {
                 setTimeout(() => {
@@ -117,15 +136,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     panContainer.scrollTop = (panContainer.scrollHeight - panContainer.clientHeight) / 2;
                 }, 50);
             }
-        }
-        
-        window.addEventListener('click', function(event) {
-            if (event.target == modal) { modal.classList.remove("show"); fullMapImg.classList.remove("zoomed"); document.body.style.overflow = "auto"; }
+        };
+        window.addEventListener('click', function (event) {
+            if (event.target === modal) {
+                modal.classList.remove("show");
+                fullMapImg.classList.remove("zoomed");
+                document.body.style.overflow = "";
+            }
         });
-
         let isDraggingMap = false;
         let startX, startY, scrollLeft, scrollTop;
-
         panContainer.addEventListener('mousedown', (e) => {
             if (!fullMapImg.classList.contains("zoomed")) return;
             isDraggingMap = true;
@@ -135,55 +155,83 @@ document.addEventListener("DOMContentLoaded", () => {
             scrollLeft = panContainer.scrollLeft;
             scrollTop = panContainer.scrollTop;
         });
-
-        panContainer.addEventListener('mouseleave', () => { isDraggingMap = false; fullMapImg.style.cursor = fullMapImg.classList.contains("zoomed") ? 'zoom-out' : 'zoom-in'; });
-        panContainer.addEventListener('mouseup', () => { isDraggingMap = false; fullMapImg.style.cursor = fullMapImg.classList.contains("zoomed") ? 'zoom-out' : 'zoom-in'; });
-
+        panContainer.addEventListener('mouseleave', () => {
+            isDraggingMap = false;
+            fullMapImg.style.cursor = fullMapImg.classList.contains("zoomed") ? 'zoom-out' : 'zoom-in';
+        });
+        panContainer.addEventListener('mouseup', () => {
+            isDraggingMap = false;
+            fullMapImg.style.cursor = fullMapImg.classList.contains("zoomed") ? 'zoom-out' : 'zoom-in';
+        });
         panContainer.addEventListener('mousemove', (e) => {
             if (!isDraggingMap) return;
             e.preventDefault();
-            const x = e.pageX - panContainer.offsetLeft;
-            const y = e.pageY - panContainer.offsetTop;
-            panContainer.scrollLeft = scrollLeft - ((x - startX) * 1.5);
-            panContainer.scrollTop = scrollTop - ((y - startY) * 1.5);
+            panContainer.scrollLeft = scrollLeft - ((e.pageX - panContainer.offsetLeft - startX) * 1.5);
+            panContainer.scrollTop = scrollTop - ((e.pageY - panContainer.offsetTop - startY) * 1.5);
         });
     }
 
-    // 6. Narrative Reveal Animations
+    // =========================================
+    // 7. NARRATIVE REVEAL ANIMATIONS
+    // FIX: start "top 70%" so elements are well inside viewport before animating
+    // =========================================
     const fElements = gsap.utils.toArray('.fade-up');
     fElements.forEach(el => {
         gsap.from(el, {
-            y: 30, opacity: 0, duration: 1.2, ease: "power2.out",
-            scrollTrigger: { trigger: el, start: "top 85%" }
+            y: 28,
+            opacity: 0,
+            duration: 1.1,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: el,
+                start: "top 78%"   // was 85% — prevents premature fire at page edge
+            }
         });
     });
 
-    // 7. BACK TO TOP BUTTON
+    // =========================================
+    // 8. BACK TO TOP
+    // =========================================
     const bttBtn = document.getElementById('backToTop');
     if (bttBtn) {
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 800) { bttBtn.classList.add('visible'); } else { bttBtn.classList.remove('visible'); }
+            bttBtn.classList.toggle('visible', window.scrollY > 800);
         });
         bttBtn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
     }
 
     // =========================================
-    // CUSTOM CHARTS LOGIC
+    // CHARTS: Shared tooltip helper
     // =========================================
-
     const siteTooltip = document.getElementById('site-tooltip');
 
-    // 1. INFRASTRUCTURE LOGIC
+    function setTooltipPosition(clientX, clientY) {
+        siteTooltip.style.visibility = "visible";
+        let x = clientX + 16;
+        let y = clientY + 16;
+        const ttRect = siteTooltip.getBoundingClientRect();
+        if (x + ttRect.width > window.innerWidth - 8) {
+            x = clientX - ttRect.width - 16;
+        }
+        if (y + ttRect.height > window.innerHeight - 8) {
+            y = clientY - ttRect.height - 16;
+        }
+        siteTooltip.style.left = x + "px";
+        siteTooltip.style.top = y + "px";
+    }
+
+    // =========================================
+    // CHART 1: INFRASTRUCTURE
+    // =========================================
     (() => {
         const data = [
             { label: "Infrastructure", val: 1735000000, share: "42%", detail: "Roads, bridges, and water networks." },
-            { label: "Residential Buildings", val: 985000000, share: "24%", detail: "Housing and household contents." },
-            { label: "Agriculture", val: 814000000, share: "20%", detail: "Paddy, livestock, and fishing gear." },
-            { label: "Non-Residential", val: 566000000, share: "14%", detail: "Schools, hospitals, and factories." }
+            { label: "Residential",    val:  985000000, share: "24%", detail: "Housing and household contents." },
+            { label: "Agriculture",    val:  814000000, share: "20%", detail: "Paddy, livestock, and fishing gear." },
+            { label: "Non-Residential",val:  566000000, share: "14%", detail: "Schools, hospitals, and factories." }
         ];
-
         const svg = document.getElementById('reuters-chart');
-        if(!svg || !siteTooltip) return;
+        if (!svg || !siteTooltip) return;
 
         const width = 800;
         const margin = { left: 160, right: 40, top: 40 };
@@ -195,15 +243,12 @@ document.addEventListener("DOMContentLoaded", () => {
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
             line.setAttribute("x1", x); line.setAttribute("y1", 20);
             line.setAttribute("x2", x); line.setAttribute("y2", 320);
-            line.setAttribute("class", "axis-line");
-            svg.appendChild(line);
-
+            line.setAttribute("class", "axis-line"); svg.appendChild(line);
             const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
             text.setAttribute("x", x); text.setAttribute("y", 10);
             text.setAttribute("class", "axis-text");
             text.textContent = i === 0 ? "0" : (i * 0.5) + "B";
-            text.setAttribute("text-anchor", "middle");
-            svg.appendChild(text);
+            text.setAttribute("text-anchor", "middle"); svg.appendChild(text);
         }
 
         data.forEach((d, i) => {
@@ -212,55 +257,69 @@ document.addEventListener("DOMContentLoaded", () => {
             const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
             group.setAttribute("class", "data-group");
 
-            group.onmouseover = () => {
-                siteTooltip.style.visibility = "visible";
+            const updateTT = (clientX, clientY) => {
                 siteTooltip.innerHTML = `
-                    <div class="tt-title">${d.label}</div>
+                    <div class="tt-title">Economic Impact · ${d.label}</div>
                     <div class="tt-val-large tt-val-red">$${(d.val / 1e9).toFixed(2)} Billion</div>
-                    <div class="tt-desc" style="color:var(--ink); margin-bottom: 8px; font-weight:700;">${d.share} of total damage</div>
+                    <div class="tt-desc" style="font-weight:700; margin-bottom:6px;">${d.share} of total damage</div>
                     <div class="tt-desc" style="border-top:1px solid var(--smoke); padding-top:8px;">${d.detail}</div>
                 `;
+                setTooltipPosition(clientX, clientY);
+                group.classList.add('active-touch');
             };
 
-            group.onmousemove = (e) => {
-                siteTooltip.style.left = (e.clientX + 15) + "px";
-                siteTooltip.style.top = (e.clientY + 15) + "px";
+            group.onmouseover = (e) => updateTT(e.clientX, e.clientY);
+            group.onmousemove = (e) => setTooltipPosition(e.clientX, e.clientY);
+            group.onmouseout = () => { siteTooltip.style.visibility = "hidden"; group.classList.remove('active-touch'); };
+            group.ontouchstart = (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.data-group').forEach(g => g.classList.remove('active-touch'));
+                updateTT(e.touches[0].clientX, e.touches[0].clientY);
             };
-            group.onmouseout = () => siteTooltip.style.visibility = "hidden";
 
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
             line.setAttribute("x1", margin.left); line.setAttribute("y1", y);
             line.setAttribute("x2", margin.left + xEnd); line.setAttribute("y2", y);
-            line.setAttribute("class", "stem");
-            group.appendChild(line);
+            line.setAttribute("class", "stem"); group.appendChild(line);
 
             const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             circle.setAttribute("cx", margin.left + xEnd); circle.setAttribute("cy", y);
-            circle.setAttribute("r", "6");
-            circle.setAttribute("class", "head");
+            circle.setAttribute("r", "6"); circle.setAttribute("class", "head");
             group.appendChild(circle);
 
             const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
             text.setAttribute("x", margin.left - 15); text.setAttribute("y", y + 4);
-            text.setAttribute("text-anchor", "end");
-            text.setAttribute("class", "data-label");
-            text.textContent = d.label.toUpperCase();
-            group.appendChild(text);
-
+            text.setAttribute("text-anchor", "end"); text.setAttribute("class", "data-label");
+            text.textContent = d.label.toUpperCase(); group.appendChild(text);
             svg.appendChild(group);
+        });
+
+        document.addEventListener('touchstart', (e) => {
+            if (!e.target.closest('.data-group')) {
+                siteTooltip.style.visibility = "hidden";
+                document.querySelectorAll('.data-group').forEach(g => g.classList.remove('active-touch'));
+            }
         });
     })();
 
-    // 2. ARC LOGIC
+    // =========================================
+    // CHART 2: ARC (Displacement)
+    // =========================================
     (() => {
         const data = [
-            { d: "Nov 29", sc: 120000, hf: 0 }, { d: "Nov 30", sc: 180499, hf: 0 },
-            { d: "Dec 01", sc: 218526, hf: 0 }, { d: "Dec 03", sc: 201875, hf: 0 },
-            { d: "Dec 06", sc: 100124, hf: 0 }, { d: "Dec 16", sc: 70000, hf: 0 },
-            { d: "Dec 19", sc: 66000, hf: 0 }, { d: "Dec 23", sc: 66000, hf: 0 },
-            { d: "Dec 30", sc: 34175, hf: 267700, note: "The Crossover" },
-            { d: "Jan 09", sc: 19000, hf: 177000 }, { d: "Jan 23", sc: 7100, hf: 170000 },
-            { d: "Feb 06", sc: 6680, hf: 165000 }, { d: "Feb 20", sc: 3400, hf: 155000 },
+            { d: "Nov 29", sc: 120000, hf: 0 },
+            { d: "Nov 30", sc: 180499, hf: 0 },
+            { d: "Dec 01", sc: 218526, hf: 0 },
+            { d: "Dec 03", sc: 201875, hf: 0 },
+            { d: "Dec 06", sc: 100124, hf: 0 },
+            { d: "Dec 16", sc: 70000,  hf: 0 },
+            { d: "Dec 19", sc: 66000,  hf: 0 },
+            { d: "Dec 23", sc: 66000,  hf: 0 },
+            { d: "Dec 30", sc: 34175,  hf: 267700, note: "The Crossover" },
+            { d: "Jan 09", sc: 19000,  hf: 177000 },
+            { d: "Jan 23", sc: 7100,   hf: 170000 },
+            { d: "Feb 06", sc: 6680,   hf: 165000 },
+            { d: "Feb 20", sc: 3400,   hf: 155000 },
             { d: "Mar 06", sc: 149927, hf: 153000, note: "The Relapse" }
         ];
 
@@ -268,42 +327,34 @@ document.addEventListener("DOMContentLoaded", () => {
         const tracker = document.getElementById('tracker');
         const grid = document.getElementById('grid');
         const interactionArea = document.getElementById('interaction-area');
-
-        if(!svg || !grid || !interactionArea) return;
+        if (!svg || !grid || !interactionArea) return;
 
         const width = 900, height = 450;
-        const margin = { top: 40, right: 20, bottom: 50, left: 50 };
+        const margin = { top: 40, right: 60, bottom: 50, left: 50 };
         const chartW = width - margin.left - margin.right;
         const chartH = height - margin.top - margin.bottom;
         const maxVal = 350000;
-        
         const getX = (i) => margin.left + (i * (chartW / (data.length - 1)));
         const getY = (val) => margin.top + chartH - (val / maxVal * chartH);
 
         let gridHTML = '';
         for (let i = 0; i <= 3; i++) {
             const val = i * 100000;
-            const y = getY(val);
-            gridHTML += `<line x1="${margin.left}" y1="${y}" x2="${margin.left + chartW}" y2="${y}" stroke="var(--smoke)" stroke-width="1" />`;
-            gridHTML += `<text x="${margin.left - 10}" y="${y + 4}" text-anchor="end" style="font-family:var(--font-ui); font-size:10px; fill:var(--dust)">${val/1000}K</text>`;
+            gridHTML += `<line x1="${margin.left}" y1="${getY(val)}" x2="${margin.left + chartW}" y2="${getY(val)}" stroke="var(--smoke)" stroke-width="1" />`;
+            gridHTML += `<text x="${margin.left - 10}" y="${getY(val) + 4}" text-anchor="end" style="font-family:var(--font-ui); font-size:10px; fill:var(--dust)">${val / 1000}K</text>`;
         }
         grid.innerHTML = gridHTML;
 
         let hostPoints = `M ${margin.left} ${margin.top + chartH}`;
         let safetyPoints = `M ${margin.left} ${margin.top + chartH}`;
-        
         data.forEach((pt, i) => {
-            const x = getX(i);
-            hostPoints += ` L ${x} ${getY(pt.hf)}`;
-            safetyPoints += ` L ${x} ${getY(pt.hf + pt.sc)}`;
+            hostPoints += ` L ${getX(i)} ${getY(pt.hf)}`;
+            safetyPoints += ` L ${getX(i)} ${getY(pt.hf + pt.sc)}`;
         });
-        
         hostPoints += ` L ${margin.left + chartW} ${margin.top + chartH} Z`;
-        safetyPoints += ` L ${margin.left + chartW} ${getY(data[data.length-1].hf)}`;
-        
+        safetyPoints += ` L ${margin.left + chartW} ${getY(data[data.length - 1].hf)}`;
         for (let i = data.length - 1; i >= 0; i--) { safetyPoints += ` L ${getX(i)} ${getY(data[i].hf)}`; }
         safetyPoints += ` Z`;
-
         document.getElementById('area-host').setAttribute('d', hostPoints);
         document.getElementById('area-safety').setAttribute('d', safetyPoints);
 
@@ -312,10 +363,12 @@ document.addEventListener("DOMContentLoaded", () => {
         data.forEach((pt, i) => {
             if (pt.note) {
                 const x = getX(i);
+                const align = (i === data.length - 1) ? 'end' : 'start';
+                const offset = (i === data.length - 1) ? -5 : 5;
                 annHTML += `
                     <line x1="${x}" y1="${margin.top}" x2="${x}" y2="${margin.top + chartH}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4,2" />
-                    <text x="${x + 5}" y="${margin.top + 10}" class="annotation-box">${pt.note}</text>
-                    <text x="${x + 5}" y="${margin.top + 24}" class="annotation-sub">${pt.d}</text>
+                    <text x="${x + offset}" y="${margin.top + 10}" class="annotation-box" text-anchor="${align}">${pt.note}</text>
+                    <text x="${x + offset}" y="${margin.top + 24}" class="annotation-sub" text-anchor="${align}">${pt.d}</text>
                 `;
             }
             if (i % 2 === 0 || pt.note) {
@@ -324,38 +377,53 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         annGroup.innerHTML = annHTML;
 
-        interactionArea.onmousemove = (e) => {
+        const handleInteraction = (clientX, clientY) => {
             const rect = svg.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
+            const mouseX = clientX - rect.left;
             const chartMouseX = (mouseX / rect.width) * width;
-            
             if (chartMouseX >= margin.left && chartMouseX <= margin.left + chartW) {
                 const i = Math.round(((chartMouseX - margin.left) / chartW) * (data.length - 1));
-                const d = data[i];
-                const x = getX(i);
-                
+                const d = data[i]; const x = getX(i);
                 tracker.setAttribute('x1', x); tracker.setAttribute('x2', x);
                 tracker.style.visibility = "visible";
-                
-                siteTooltip.style.visibility = "visible";
-                siteTooltip.style.left = (e.clientX + 15) + "px";
-                siteTooltip.style.top = (e.clientY + 15) + "px";
                 siteTooltip.innerHTML = `
-                    <div class="tt-title" style="margin-bottom:12px;">${d.d.toUpperCase()}</div>
-                    <div class="tt-flex"><span><span style="color:var(--crimson)">●</span> Safety Centres:</span><span style="font-weight:700">${d.sc.toLocaleString()}</span></div>
-                    <div class="tt-flex"><span><span style="color:var(--ink)">●</span> Host Families:</span><span style="font-weight:700">${d.hf.toLocaleString()}</span></div>
-                    <div class="tt-total"><span>TOTAL:</span><span>${(d.sc + d.hf).toLocaleString()}</span></div>
+                    <div class="tt-title">Displacement · ${d.d.toUpperCase()}</div>
+                    <div class="tt-val-large">${(d.sc + d.hf).toLocaleString()}</div>
+                    <div class="tt-flex" style="margin-top:10px;">
+                        <span><span style="color:var(--crimson)">●</span> Safety Centres:</span>
+                        <span style="font-weight:700">${d.sc.toLocaleString()}</span>
+                    </div>
+                    <div class="tt-flex">
+                        <span><span style="color:var(--ink)">●</span> Host Families:</span>
+                        <span style="font-weight:700">${d.hf.toLocaleString()}</span>
+                    </div>
                 `;
+                setTooltipPosition(clientX, clientY);
             }
         };
 
-        interactionArea.onmouseleave = () => { siteTooltip.style.visibility = "hidden"; tracker.style.visibility = "hidden"; };
+        interactionArea.onmousemove = (e) => handleInteraction(e.clientX, e.clientY);
+        interactionArea.ontouchstart = (e) => handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+        interactionArea.ontouchmove = (e) => handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+        interactionArea.onmouseleave = () => {
+            siteTooltip.style.visibility = "hidden";
+            tracker.style.visibility = "hidden";
+        };
+        document.addEventListener('touchstart', (e) => {
+            if (!e.target.closest('#interaction-area')) {
+                siteTooltip.style.visibility = "hidden";
+                tracker.style.visibility = "hidden";
+            }
+        });
     })();
 
-    // 3. MATRIX LOGIC
+    // =========================================
+    // CHART 3: MATRIX (Schools)
+    // FIX: open color updated to match new --open-blue CSS variable
+    // =========================================
     (() => {
         const canvas = document.getElementById('matrix-canvas');
-        if(!canvas) return; 
+        if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
         const schools = { total: 10076, damaged: 1339, shelters: 500, closed: 147, functioning: 8090 };
@@ -363,26 +431,22 @@ document.addEventListener("DOMContentLoaded", () => {
         const rows = Math.ceil(schools.total / ui.cols);
         const cellSize = ui.radius + ui.gap;
 
-        // Colors UPDATED to fix visibility issue on Theoretically Open
+        // FIX: 'open' color updated from '#E8E4DC' (ghost, near-invisible) to '#7A9EB8' (visible blue)
         const colors = {
-            damaged: '191, 45, 38',   // --crimson
-            shelter: '19, 17, 16',    // --ink
-            closed:  '140, 124, 105', // --dust
-            open:    '196, 191, 180'  // --smoke (Darkened for contrast)
+            damaged: '191, 45, 38',
+            shelter: '19, 17, 16',
+            closed:  '140, 124, 105',
+            open:    '122, 158, 184'   // was '232, 228, 220' — now clearly visible
         };
 
         function init() {
             const dpr = window.devicePixelRatio || 1;
             const internalWidth = ui.cols * cellSize;
             const internalHeight = rows * cellSize;
-            
             canvas.width = internalWidth * dpr;
             canvas.height = internalHeight * dpr;
-            
-            canvas.style.width = '100%';
+            canvas.style.width = (window.innerWidth <= 768) ? '700px' : '100%';
             canvas.style.height = 'auto';
-            canvas.style.aspectRatio = `${internalWidth} / ${internalHeight}`;
-
             ctx.scale(dpr, dpr);
             render();
         }
@@ -400,25 +464,21 @@ document.addEventListener("DOMContentLoaded", () => {
                 const cat = getCategory(i);
                 const x = (i % ui.cols) * cellSize;
                 const y = Math.floor(i / ui.cols) * cellSize;
-                let opacity = (ui.activeCat && ui.activeCat !== cat) ? 0.15 : 1;
+                let opacity = (ui.activeCat && ui.activeCat !== cat) ? 0.12 : 1;
                 ctx.fillStyle = `rgba(${colors[cat]}, ${opacity})`;
-
                 ctx.beginPath();
-                ctx.arc(x + ui.radius/2, y + ui.radius/2, ui.radius/2, 0, Math.PI * 2);
+                ctx.arc(x + ui.radius / 2, y + ui.radius / 2, ui.radius / 2, 0, Math.PI * 2);
                 ctx.fill();
             }
         }
 
-        canvas.addEventListener('mousemove', (e) => {
+        const handleCanvasInteraction = (clientX, clientY) => {
             const rect = canvas.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
-            
             const scaleX = (canvas.width / dpr) / rect.width;
             const scaleY = (canvas.height / dpr) / rect.height;
-            
-            const mx = (e.clientX - rect.left) * scaleX;
-            const my = (e.clientY - rect.top) * scaleY;
-            
+            const mx = (clientX - rect.left) * scaleX;
+            const my = (clientY - rect.top) * scaleY;
             const col = Math.floor(mx / cellSize);
             const row = Math.floor(my / cellSize);
             const index = (row * ui.cols) + col;
@@ -426,113 +486,153 @@ document.addEventListener("DOMContentLoaded", () => {
             if (index >= 0 && index < schools.total && col < ui.cols) {
                 const cat = getCategory(index);
                 if (ui.activeCat !== cat) { ui.activeCat = cat; render(); }
-
-                siteTooltip.style.visibility = 'visible';
-                siteTooltip.style.left = (e.clientX + 20) + 'px';
-                siteTooltip.style.top = (e.clientY + 20) + 'px';
-
                 const content = {
-                    damaged: ["Structurally Damaged", "Buildings sustained serious structural failure during the cyclone."],
-                    shelter: ["Emergency Shelter", "Active learning suspended; space utilized for survival infrastructure."],
-                    closed:  ["Unable to Reopen", "Remained closed due to access barriers or localized flooding."],
-                    open:    ["Functioning", "School remains operational or cleared for education."]
+                    damaged: ["Structurally Damaged",  "Buildings sustained serious structural failure during the cyclone.", "1,339", "var(--crimson)"],
+                    shelter: ["Emergency Shelter",     "Active learning suspended; space utilized for survival infrastructure.", "500", "var(--ink)"],
+                    closed:  ["Unable to Reopen",      "Remained closed due to access barriers or localized flooding.", "147", "var(--dust)"],
+                    open:    ["Theoretically Open",    "School remains operational or cleared for education — but many lack teachers or supplies.", "8,090", "var(--azure)"]
                 };
-                siteTooltip.innerHTML = `<div class="tt-title">${content[cat][0]}</div><div class="tt-desc" style="color: var(--ink); font-weight: 500;">${content[cat][1]}</div>`;
+                siteTooltip.innerHTML = `
+                    <div class="tt-title">Education Status · ${content[cat][0]}</div>
+                    <div class="tt-val-large" style="color:${content[cat][3]}">${content[cat][2]}</div>
+                    <div class="tt-desc">${content[cat][1]}</div>
+                `;
+                setTooltipPosition(clientX, clientY);
             } else {
                 if (ui.activeCat !== null) { ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden'; }
             }
-        });
-        
+        };
+
+        canvas.addEventListener('mousemove', (e) => handleCanvasInteraction(e.clientX, e.clientY));
+        canvas.addEventListener('touchstart', (e) => handleCanvasInteraction(e.touches[0].clientX, e.touches[0].clientY));
         canvas.addEventListener('mouseleave', () => { ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden'; });
+        document.addEventListener('touchstart', (e) => {
+            if (!e.target.closest('#sect-matrix')) {
+                ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden';
+            }
+        });
         window.addEventListener('resize', init);
         init();
     })();
 
-    // 4. FUNDING LOGIC & SCROLL ANIMATIONS
+    // =========================================
+    // CHART 4: FUNDING VESSEL
+    // FIX: trigger on the vessel element itself, not the whole section
+    // FIX: threshold raised to 0.5 so animation fires when vessel is clearly in view
+    // =========================================
     (() => {
         const hpp = document.getElementById('hpp-vessel');
         const shadow = document.getElementById('shadow-flow');
+        if (!hpp) return;
 
-        if(!hpp || !shadow) return;
-
-        function updateTT(e, title, val, desc) {
-            siteTooltip.style.visibility = 'visible';
-            siteTooltip.style.left = (e.clientX + 25) + 'px';
-            siteTooltip.style.top = (e.clientY + 25) + 'px';
-            siteTooltip.innerHTML = `<div class="tt-title">${title}</div><div class="tt-val-large">${val}</div><p class="tt-desc">${desc}</p>`;
-        }
-
-        hpp.onmousemove = (e) => {
-            const rect = hpp.getBoundingClientRect();
-            const pct = 100 - ((e.clientY - rect.top) / rect.height * 100);
-            if (pct > 63.7) {
-                updateTT(e, "Funding Gap", "$12.8M Unmet", "Formal funding plateaued at 63.7% of the total goal.");
-            } else {
-                updateTT(e, "Funded (HPP)", "$22.5M Committed", "Resources delivered through the UN-led coordinated system.");
+        const updateFundingTooltip = (clientX, clientY, type) => {
+            if (type === 'vessel') {
+                const rect = hpp.getBoundingClientRect();
+                const pct = 100 - ((clientY - rect.top) / rect.height * 100);
+                if (pct > 63.7) {
+                    siteTooltip.innerHTML = `
+                        <div class="tt-title">Funding Gap</div>
+                        <div class="tt-val-large tt-val-red">$12.8M Unmet</div>
+                        <p class="tt-desc">Formal funding plateaued at 63.7% of the $35.3M target.</p>
+                    `;
+                } else {
+                    siteTooltip.innerHTML = `
+                        <div class="tt-title">Funded (HPP)</div>
+                        <div class="tt-val-large">$22.5M Secured</div>
+                        <p class="tt-desc">Resources delivered through the UN-led coordinated system.</p>
+                    `;
+                }
+            } else if (shadow) {
+                siteTooltip.innerHTML = `
+                    <div class="tt-title">Shadow Funding</div>
+                    <div class="tt-val-large" style="color:var(--dust)">Independent Flow</div>
+                    <p class="tt-desc">Direct bilateral or private aid bypassing the coordinated HPP system.</p>
+                `;
             }
+            setTooltipPosition(clientX, clientY);
         };
 
-        shadow.onmousemove = (e) => { updateTT(e, "Shadow Funding", "Independent Flow", "Direct bilateral or private aid bypassing the coordinated HPP system."); };
-        [hpp, shadow].forEach(el => el.onmouseleave = () => siteTooltip.style.visibility = 'hidden');
-        
-        const fundingSection = document.getElementById('sect-funding');
+        hpp.onmousemove = (e) => updateFundingTooltip(e.clientX, e.clientY, 'vessel');
+        hpp.ontouchstart = (e) => updateFundingTooltip(e.touches[0].clientX, e.touches[0].clientY, 'vessel');
+        if (shadow) {
+            shadow.onmousemove = (e) => updateFundingTooltip(e.clientX, e.clientY, 'shadow');
+            shadow.ontouchstart = (e) => updateFundingTooltip(e.touches[0].clientX, e.touches[0].clientY, 'shadow');
+        }
+        [hpp, shadow].forEach(el => { if (el) el.onmouseleave = () => siteTooltip.style.visibility = 'hidden'; });
+        document.addEventListener('touchstart', (e) => {
+            if (!e.target.closest('#funding-interaction') && !e.target.closest('#shadow-flow')) {
+                siteTooltip.style.visibility = 'hidden';
+            }
+        });
+
         let animated = false;
-        
+
         function animateValue(obj, start, end, duration, prefix = '', suffix = '') {
             let startTimestamp = null;
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const currentVal = (progress * (end - start) + start).toFixed(1);
+                const ease = 1 - Math.pow(1 - progress, 3); // cubic ease out
+                const currentVal = (ease * (end - start) + start).toFixed(1);
                 obj.innerHTML = `${prefix}${currentVal}${suffix}`;
                 if (progress < 1) window.requestAnimationFrame(step);
             };
             window.requestAnimationFrame(step);
         }
 
+        // FIX: trigger on vessel-area instead of the whole section, threshold 0.5
+        // so the fill animation happens when the vessel is centered in the user's view
+        const vesselTrigger = document.getElementById('funding-interaction') || document.getElementById('sect-funding');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !animated) {
-                    animated = true; 
+                    animated = true;
                     document.getElementById('vessel-fill-anim').style.height = '63.7%';
                     document.getElementById('progress-fill-anim').style.width = '44.2%';
-                    document.querySelectorAll('.count-up-money').forEach(el => animateValue(el, 0, parseFloat(el.getAttribute('data-target')), 2000, '$', 'M'));
-                    document.querySelectorAll('.count-up-pct').forEach(el => animateValue(el, 0, parseFloat(el.getAttribute('data-target')), 2000));
+                    document.querySelectorAll('.count-up-money').forEach(el =>
+                        animateValue(el, 0, parseFloat(el.getAttribute('data-target')), 2200, '$', 'M')
+                    );
+                    document.querySelectorAll('.count-up-pct').forEach(el =>
+                        animateValue(el, 0, parseFloat(el.getAttribute('data-target')), 2200)
+                    );
                 }
             });
-        }, { threshold: 0.5 });
-        
-        if (fundingSection) observer.observe(fundingSection);
+        }, {
+            threshold: 0.5,   // was 0.3 — now half the vessel must be visible
+            rootMargin: '0px 0px -5% 0px'
+        });
+
+        if (vesselTrigger) observer.observe(vesselTrigger);
     })();
 
+
     // =========================================
-    // HIGH-PERFORMANCE SPIRAL LOGIC
+    // SPIRAL VISUALIZATIONS
     // =========================================
     const PATH_SHELL = "M67.92,1.63c.39-.96,1.79-.78,1.92.24.89,6.91,2.28,15.58,4.53,25.45.99,4.35,4.66,19.9,12.5,40.17,2.2,5.69,5.91,13.96,13.33,30.5,7.83,17.46,10.07,21.8,13.83,31.83,4.55,12.11,6.84,18.35,8,27.33.81,6.26,1.93,15.65-1,27.33-3.38,13.48-10.21,22.34-12.83,25.5-3.2,3.86-8.17,9.76-16.67,14.17-8,4.15-15.23,4.95-24.67,6-5.26.58-10.27,1.14-16.83.5-4.2-.41-14.54-1.42-24.17-7.33-15.51-9.52-20.33-26.34-22.33-33.33-3.69-12.87-2.62-23.22-1.33-34.5,1.9-16.66,6.37-28.11,14.17-47.83,3.16-7.99,10.39-25.52,21.83-46.83,7.44-13.86,11-18.76,18.17-33.33,5.04-10.24,8.86-19.16,11.55-25.85Z";
     const PATH_DETAILS = [
-      "M51.59,44.76c-4.48,11.83-9.95,24.61-16.67,38-8.17,16.3-16.74,30.64-24.99,43.02",
-      "M65.14,20.98c.04,6.63.47,14.02,1.56,22,.67,4.9,1.51,9.5,2.44,13.78",
-      "M72.75,22.07c-.13,5.9.15,14.43,2.17,24.47,1.85,9.18,4.41,15.8,7.56,24,3.15,8.2,5.92,14,11.33,25.33,4.47,9.35,9.56,19.56,9.56,19.56,3.79,7.6,5.65,11.15,8,17.11,1.28,3.24,2.92,7.45,4.44,13.11,2.35,8.75,2.95,15.62,3.56,23.11.36,4.47.69,10.52.6,17.74",
-      "M78.26,87.65c1.88,4.73,4.57,11.54,7.78,19.78,4.42,11.34,6.49,16.86,8.22,21.56,4.26,11.56,6.41,17.45,7.56,22.67,1.36,6.17,2.71,12.33,2.22,20.44-.38,6.28-1.03,17.18-8.89,26.67-5.34,6.45-11.47,9.19-14.89,10.67-1.89.82-8.21,3.55-9.56,1.78-1.07-1.4,1.39-5.07,2.89-6.89,2.84-3.45,5.84-4.58,8.22-6,6.05-3.59,8.88-9.41,10.89-13.56,4.68-9.63,3.51-19.17,2.67-23.56",
-      "M32.26,113.87c1.19.25,1.15,4.87,1.11,8.22-.13,10.61-2.09,14.8-3.33,24.89-1.08,8.8-1.62,13.19-.22,19.11,1.29,5.43,4.43,13.12,4.89,14.22.78,1.89,2.37,5.63,3.56,10.89,1.4,6.24.64,7.6,0,8.22-1.94,1.86-6.29.21-7.33-.22-8.55-3.54-11.44-14.78-12.44-18.67-2.46-9.56-1.28-17.05.67-29.33,1.75-11.03,4.32-18.07,6.89-25.11,1.6-4.38,4.59-12.56,6.22-12.22Z",
-      "M1.43,162.93c1.98,14.39,6.2,25.18,9.5,32.05,5.21,10.88,9.55,14.97,12.22,17.11,1.78,1.43,5.35,4,14.22,7.11,8.47,2.97,18,6.3,30.44,6,17.38-.42,30.46-7.68,36.86-11.92",
-      "M3.53,189.98c2.16,3.4,5.46,8.19,10.06,13.44,6.07,6.95,12.38,14.16,23.11,19.56,2.07,1.04,10.71,5.23,22.89,6.44,5.37.53,9.97.34,13.39,0"
+        "M51.59,44.76c-4.48,11.83-9.95,24.61-16.67,38-8.17,16.3-16.74,30.64-24.99,43.02",
+        "M65.14,20.98c.04,6.63.47,14.02,1.56,22,.67,4.9,1.51,9.5,2.44,13.78",
+        "M72.75,22.07c-.13,5.9.15,14.43,2.17,24.47,1.85,9.18,4.41,15.8,7.56,24,3.15,8.2,5.92,14,11.33,25.33,4.47,9.35,9.56,19.56,9.56,19.56,3.79,7.6,5.65,11.15,8,17.11,1.28,3.24,2.92,7.45,4.44,13.11,2.35,8.75,2.95,15.62,3.56,23.11.36,4.47.69,10.52.6,17.74",
+        "M78.26,87.65c1.88,4.73,4.57,11.54,7.78,19.78,4.42,11.34,6.49,16.86,8.22,21.56,4.26,11.56,6.41,17.45,7.56,22.67,1.36,6.17,2.71,12.33,2.22,20.44-.38,6.28-1.03,17.18-8.89,26.67-5.34,6.45-11.47,9.19-14.89,10.67-1.89.82-8.21,3.55-9.56,1.78-1.07-1.4,1.39-5.07,2.89-6.89,2.84-3.45,5.84-4.58,8.22-6,6.05-3.59,8.88-9.41,10.89-13.56,4.68-9.63,3.51-19.17,2.67-23.56",
+        "M32.26,113.87c1.19.25,1.15,4.87,1.11,8.22-.13,10.61-2.09,14.8-3.33,24.89-1.08,8.8-1.62,13.19-.22,19.11,1.29,5.43,4.43,13.12,4.89,14.22.78,1.89,2.37,5.63,3.56,10.89,1.4,6.24.64,7.6,0,8.22-1.94,1.86-6.29.21-7.33-.22-8.55-3.54-11.44-14.78-12.44-18.67-2.46-9.56-1.28-17.05.67-29.33,1.75-11.03,4.32-18.07,6.89-25.11,1.6-4.38,4.59-12.56,6.22-12.22Z",
+        "M1.43,162.93c1.98,14.39,6.2,25.18,9.5,32.05,5.21,10.88,9.55,14.97,12.22,17.11,1.78,1.43,5.35,4,14.22,7.11,8.47,2.97,18,6.3,30.44,6,17.38-.42,30.46-7.68,36.86-11.92",
+        "M3.53,189.98c2.16,3.4,5.46,8.19,10.06,13.44,6.07,6.95,12.38,14.16,23.11,19.56,2.07,1.04,10.71,5.23,22.89,6.44,5.37.53,9.97.34,13.39,0"
     ];
 
     const createSpiralSketch = (containerId, configData, settings, titlePrefix) => {
         return (p) => {
             let shellPath2D;
             let detailPaths2D = [];
-            let dropPositions = []; 
+            let dropPositions = [];
             let activeHoverId = null;
-            let touchTimeout = null; 
-            let staticBuffer; 
-            let maxRadius = 0; 
+            let touchTimeout = null;
+            let staticBuffer;
+            let maxRadius = 0;
 
             p.setup = () => {
                 const container = document.getElementById(containerId);
-                const size = container.clientWidth;
-                p.createCanvas(size, size);
+                p.createCanvas(container.clientWidth, container.clientWidth);
                 shellPath2D = new Path2D(PATH_SHELL);
                 PATH_DETAILS.forEach(d => detailPaths2D.push(new Path2D(d)));
                 calculatePositions();
@@ -547,12 +647,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     for (let j = 0; j < group.count; j++) {
                         const r = settings.spacing * p.sqrt(i);
                         const theta = i * settings.angle;
-                        dropPositions.push({ x: r * p.cos(theta), y: r * p.sin(theta), r: r, theta: theta, group: group });
+                        dropPositions.push({ x: r * p.cos(theta), y: r * p.sin(theta), r, theta, group });
                         i++;
                     }
                 });
-                const totalDrops = configData.reduce((acc, curr) => acc + curr.count, 0);
-                maxRadius = settings.spacing * p.sqrt(settings.startIndex + totalDrops) + 50;
+                maxRadius = settings.spacing * p.sqrt(settings.startIndex + dropPositions.length) + 50;
             };
 
             const renderStaticBuffer = () => {
@@ -567,14 +666,12 @@ document.addEventListener("DOMContentLoaded", () => {
                     staticBuffer.translate(drop.x, drop.y);
                     staticBuffer.rotate(staticBuffer.atan2(drop.y, drop.x) + staticBuffer.HALF_PI);
                     staticBuffer.scale(settings.scale);
-                    staticBuffer.translate(-61.5, -115.5); 
+                    staticBuffer.translate(-61.5, -115.5);
                     const ctx = staticBuffer.drawingContext;
                     ctx.fillStyle = drop.group.fill;
                     ctx.strokeStyle = drop.group.stroke;
-                    ctx.lineWidth = 2;
-                    ctx.fill(shellPath2D); ctx.stroke(shellPath2D);
-                    ctx.lineWidth = 0.5;
-                    detailPaths2D.forEach(path => ctx.stroke(path));
+                    ctx.lineWidth = 2; ctx.fill(shellPath2D); ctx.stroke(shellPath2D);
+                    ctx.lineWidth = 0.5; detailPaths2D.forEach(path => ctx.stroke(path));
                     staticBuffer.pop();
                 });
             };
@@ -588,9 +685,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     p.push(); p.translate(p.width / 2, p.height / 2); p.scale(viewScale);
                     dropPositions.forEach(drop => {
                         if (drop.group.id === activeHoverId) {
-                            p.push(); p.translate(drop.x, drop.y); p.rotate(p.atan2(drop.y, drop.x) + p.HALF_PI); p.scale(settings.scale); p.translate(-61.5, -115.5); 
+                            p.push();
+                            p.translate(drop.x, drop.y);
+                            p.rotate(p.atan2(drop.y, drop.x) + p.HALF_PI);
+                            p.scale(settings.scale);
+                            p.translate(-61.5, -115.5);
                             const ctx = p.drawingContext;
-                            ctx.globalAlpha = 1.0; ctx.fillStyle = drop.group.fill; ctx.strokeStyle = drop.group.stroke;
+                            ctx.globalAlpha = 1.0;
+                            ctx.fillStyle = drop.group.fill; ctx.strokeStyle = drop.group.stroke;
                             ctx.lineWidth = 2; ctx.fill(shellPath2D); ctx.stroke(shellPath2D);
                             ctx.lineWidth = 0.5; detailPaths2D.forEach(path => ctx.stroke(path));
                             p.pop();
@@ -606,9 +708,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 const localY = (y - p.height / 2) / viewScale;
                 if (p.dist(0, 0, localX, localY) > maxRadius) return null;
                 let foundHover = null;
-                const hitRadius = isTouch ? 50 : 25; 
+                const hitRadius = isTouch ? 50 : 25;
                 for (let i = 0; i < dropPositions.length; i++) {
-                    if (p.dist(localX, localY, dropPositions[i].x, dropPositions[i].y) < hitRadius) { foundHover = dropPositions[i].group; break; }
+                    if (p.dist(localX, localY, dropPositions[i].x, dropPositions[i].y) < hitRadius) {
+                        foundHover = dropPositions[i].group;
+                        break;
+                    }
                 }
                 return foundHover;
             };
@@ -616,20 +721,31 @@ document.addEventListener("DOMContentLoaded", () => {
             const updateTooltipUI = (foundHover, pointerX, pointerY) => {
                 if (foundHover && activeHoverId !== foundHover.id) {
                     activeHoverId = foundHover.id;
-                    siteTooltip.innerHTML = `<div class="tt-title">${titlePrefix} · ${foundHover.label}</div><div class="tt-val-large" style="color: ${foundHover.fill}">${foundHover.displayCount}</div><div class="tt-desc" style="color: var(--ink); font-weight: 500;">${foundHover.subLabel}</div>`;
+                    siteTooltip.innerHTML = `
+                        <div class="tt-title">${titlePrefix} · ${foundHover.label}</div>
+                        <div class="tt-val-large" style="color: ${foundHover.fill}">${foundHover.displayCount}</div>
+                        <div class="tt-desc" style="font-weight: 500;">${foundHover.subLabel}</div>
+                    `;
                     siteTooltip.style.visibility = 'visible';
                     p.redraw();
                 } else if (!foundHover && activeHoverId !== null) {
                     clearInteraction();
                 }
-                if (activeHoverId) { siteTooltip.style.left = pointerX + 'px'; siteTooltip.style.top = pointerY + 'px'; }
+                if (activeHoverId) setTooltipPosition(pointerX, pointerY);
             };
 
-            const clearInteraction = () => { activeHoverId = null; siteTooltip.style.visibility = 'hidden'; p.redraw(); };
+            const clearInteraction = () => {
+                activeHoverId = null;
+                siteTooltip.style.visibility = 'hidden';
+                p.redraw();
+            };
 
             p.mouseMoved = () => {
-                if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) { if (activeHoverId !== null) clearInteraction(); return; }
-                updateTooltipUI(detectInteraction(p.mouseX, p.mouseY, false), p.winMouseX + 20, p.winMouseY + 20);
+                if (p.mouseX < 0 || p.mouseX > p.width || p.mouseY < 0 || p.mouseY > p.height) {
+                    if (activeHoverId !== null) clearInteraction();
+                    return;
+                }
+                updateTooltipUI(detectInteraction(p.mouseX, p.mouseY, false), p.winMouseX, p.winMouseY);
             };
 
             p.touchStarted = () => {
@@ -637,33 +753,35 @@ document.addEventListener("DOMContentLoaded", () => {
                     const tx = p.touches[0].x, ty = p.touches[0].y;
                     if (tx >= 0 && tx <= p.width && ty >= 0 && ty <= p.height) {
                         const foundHover = detectInteraction(tx, ty, true);
-                        updateTooltipUI(foundHover, p.touches[0].winX + 20, p.touches[0].winY + 20);
+                        updateTooltipUI(foundHover, p.touches[0].winX, p.touches[0].winY);
                         if (touchTimeout) clearTimeout(touchTimeout);
-                        if (foundHover) touchTimeout = setTimeout(() => { clearInteraction(); }, 2000);
+                        if (foundHover) touchTimeout = setTimeout(() => { clearInteraction(); }, 2500);
                     }
                 }
-                return true; 
+                return true;
             };
 
             p.windowResized = () => {
                 const container = document.getElementById(containerId);
                 p.resizeCanvas(container.clientWidth, container.clientWidth);
-                calculatePositions(); renderStaticBuffer(); p.redraw();
+                calculatePositions();
+                renderStaticBuffer();
+                p.redraw();
             };
         };
     };
 
     const day1Data = [
-      { id: 'missing', count: 203, fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing', displayCount: '203', subLabel: 'Many would never be found' }, 
-      { id: 'casualties', count: 159, fill: '#BF2D26', stroke: '#F6F3EC', label: 'Casualties', displayCount: '159', subLabel: 'A toll that would grow fourfold in 90 days' }, 
-      { id: 'affected', count: 800, fill: '#131110', stroke: '#F6F3EC', label: 'Affected', displayCount: '800k', subLabel: 'Roughly the entire population of Colombo' }  
+        { id: 'missing',    count: 203,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '203',  subLabel: 'Many would never be found' },
+        { id: 'casualties', count: 159,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Casualties', displayCount: '159',  subLabel: 'A toll that would grow fourfold in 90 days' },
+        { id: 'affected',   count: 800,  fill: '#131110', stroke: '#F6F3EC', label: 'Affected',   displayCount: '800k', subLabel: 'Roughly the entire population of Colombo' }
     ];
     const day1Settings = { spacing: 17.5, startIndex: 1, scale: 0.13, angle: 137.508 * (Math.PI / 180) };
 
     const month3Data = [
-      { id: 'missing', count: 173, fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing', displayCount: '173', subLabel: 'Still unaccounted for, three months on' }, 
-      { id: 'casualties', count: 646, fill: '#BF2D26', stroke: '#F6F3EC', label: 'Casualties', displayCount: '646', subLabel: 'Four times the toll from landfall day' }, 
-      { id: 'affected', count: 2300, fill: '#131110', stroke: '#F6F3EC', label: 'Affected', displayCount: '2.3M', subLabel: 'Nearly 1 in 10 Sri Lankans' }  
+        { id: 'missing',    count: 173,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '173',  subLabel: 'Still unaccounted for, three months on' },
+        { id: 'casualties', count: 646,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Casualties', displayCount: '646',  subLabel: 'Four times the toll from landfall day' },
+        { id: 'affected',   count: 2300, fill: '#131110', stroke: '#F6F3EC', label: 'Affected',   displayCount: '2.3M', subLabel: 'Nearly 1 in 10 Sri Lankans' }
     ];
     const month3Settings = { spacing: 14.1, startIndex: 1, scale: 0.11, angle: 137.508 * (Math.PI / 180) };
 
@@ -672,9 +790,15 @@ document.addEventListener("DOMContentLoaded", () => {
         new p5(createSpiralSketch('canvas-month3', month3Data, month3Settings, 'Phase 02'), 'canvas-month3');
     }
 
+    // FIX: spiral canvases fade in at threshold 0.35 (was 0.2) so they're clearly visible first
     const spiralFadeElements = document.querySelectorAll('.canvas-wrapper');
     const chartObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add('fade-in-visible'); chartObserver.unobserve(entry.target); } });
-    }, { threshold: 0.2 });
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in-visible');
+                chartObserver.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.35 });  // was 0.2
     spiralFadeElements.forEach(el => chartObserver.observe(el));
 });
