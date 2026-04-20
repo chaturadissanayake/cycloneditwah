@@ -24,30 +24,64 @@ document.addEventListener("DOMContentLoaded", () => {
         introBtn.addEventListener('click', () => {
             introContent.style.display = 'block';
             introBtn.style.display = 'none';
-            ScrollTrigger.refresh(); // recalculate after DOM change
+            ScrollTrigger.refresh();
         });
     }
 
     // =========================================
     // 3. STAGGERED METRICS COUNTER
-    // FIX: trigger pushed to top 60% so animation plays when cards are clearly visible
-    // FIX: counters animate from 0 on scroll, not on page load
     // =========================================
+    // Intro Breakout Counters
+    const metricsContainerIntro = document.getElementById("metrics-container-intro");
+    if (metricsContainerIntro) {
+        ScrollTrigger.create({
+            trigger: metricsContainerIntro,
+            start: "top 70%",
+            once: true,
+            onEnter: () => {
+                gsap.to(".metric-item-intro", {
+                    y: 0,
+                    opacity: 1,
+                    duration: 0.8,
+                    stagger: 0.15,
+                    ease: "power2.out"
+                });
+                metricsContainerIntro.querySelectorAll('.counter').forEach(el => {
+                    const target = parseFloat(el.getAttribute('data-target'));
+                    const isFloat = target % 1 !== 0;
+                    let proxy = { val: 0 };
+                    gsap.to(proxy, {
+                        val: target,
+                        duration: 2.2,
+                        delay: 0.2,
+                        ease: "power2.out",
+                        onUpdate: function() {
+                            el.innerText = isFloat
+                                ? proxy.val.toFixed(1)
+                                : Math.floor(proxy.val).toLocaleString();
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+    // Original Breakdown Counters
     const metricsContainer = document.getElementById("metrics-container");
     if (metricsContainer) {
         ScrollTrigger.create({
             trigger: metricsContainer,
-            start: "top 60%",   // was 75% — now fires when element is well in view
+            start: "top 70%",
             once: true,
             onEnter: () => {
                 gsap.to(".metric-item", {
                     y: 0,
                     opacity: 1,
-                    duration: 0.9,
-                    stagger: 0.18,
+                    duration: 0.8,
+                    stagger: 0.15,
                     ease: "power2.out"
                 });
-                document.querySelectorAll('.counter').forEach(el => {
+                metricsContainer.querySelectorAll('.counter').forEach(el => {
                     const target = parseFloat(el.getAttribute('data-target'));
                     const isFloat = target % 1 !== 0;
                     let proxy = { val: 0 };
@@ -173,18 +207,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =========================================
     // 7. NARRATIVE REVEAL ANIMATIONS
-    // FIX: start "top 70%" so elements are well inside viewport before animating
     // =========================================
     const fElements = gsap.utils.toArray('.fade-up');
     fElements.forEach(el => {
         gsap.from(el, {
             y: 28,
             opacity: 0,
-            duration: 1.1,
+            duration: 0.8,
             ease: "power2.out",
             scrollTrigger: {
                 trigger: el,
-                start: "top 78%"   // was 85% — prevents premature fire at page edge
+                start: "top 85%" 
             }
         });
     });
@@ -419,7 +452,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =========================================
     // CHART 3: MATRIX (Schools)
-    // FIX: open color updated to match new --open-blue CSS variable
     // =========================================
     (() => {
         const canvas = document.getElementById('matrix-canvas');
@@ -431,12 +463,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const rows = Math.ceil(schools.total / ui.cols);
         const cellSize = ui.radius + ui.gap;
 
-        // FIX: 'open' color updated from '#E8E4DC' (ghost, near-invisible) to '#7A9EB8' (visible blue)
         const colors = {
             damaged: '191, 45, 38',
             shelter: '19, 17, 16',
             closed:  '140, 124, 105',
-            open:    '122, 158, 184'   // was '232, 228, 220' — now clearly visible
+            open:    '122, 158, 184'   
         };
 
         function init() {
@@ -517,16 +548,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =========================================
     // CHART 4: FUNDING VESSEL
-    // FIX: trigger on the vessel element itself, not the whole section
-    // FIX: threshold raised to 0.5 so animation fires when vessel is clearly in view
     // =========================================
     (() => {
         const hpp = document.getElementById('hpp-vessel');
         const shadow = document.getElementById('shadow-flow');
-        if (!hpp) return;
 
         const updateFundingTooltip = (clientX, clientY, type) => {
-            if (type === 'vessel') {
+            if (type === 'vessel' && hpp) {
                 const rect = hpp.getBoundingClientRect();
                 const pct = 100 - ((clientY - rect.top) / rect.height * 100);
                 if (pct > 63.7) {
@@ -552,13 +580,16 @@ document.addEventListener("DOMContentLoaded", () => {
             setTooltipPosition(clientX, clientY);
         };
 
-        hpp.onmousemove = (e) => updateFundingTooltip(e.clientX, e.clientY, 'vessel');
-        hpp.ontouchstart = (e) => updateFundingTooltip(e.touches[0].clientX, e.touches[0].clientY, 'vessel');
+        if(hpp) {
+            hpp.onmousemove = (e) => updateFundingTooltip(e.clientX, e.clientY, 'vessel');
+            hpp.ontouchstart = (e) => updateFundingTooltip(e.touches[0].clientX, e.touches[0].clientY, 'vessel');
+            hpp.onmouseleave = () => siteTooltip.style.visibility = 'hidden';
+        }
         if (shadow) {
             shadow.onmousemove = (e) => updateFundingTooltip(e.clientX, e.clientY, 'shadow');
             shadow.ontouchstart = (e) => updateFundingTooltip(e.touches[0].clientX, e.touches[0].clientY, 'shadow');
+            shadow.onmouseleave = () => siteTooltip.style.visibility = 'hidden';
         }
-        [hpp, shadow].forEach(el => { if (el) el.onmouseleave = () => siteTooltip.style.visibility = 'hidden'; });
         document.addEventListener('touchstart', (e) => {
             if (!e.target.closest('#funding-interaction') && !e.target.closest('#shadow-flow')) {
                 siteTooltip.style.visibility = 'hidden';
@@ -580,15 +611,13 @@ document.addEventListener("DOMContentLoaded", () => {
             window.requestAnimationFrame(step);
         }
 
-        // FIX: trigger on vessel-area instead of the whole section, threshold 0.5
-        // so the fill animation happens when the vessel is centered in the user's view
         const vesselTrigger = document.getElementById('funding-interaction') || document.getElementById('sect-funding');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !animated) {
                     animated = true;
-                    document.getElementById('vessel-fill-anim').style.height = '63.7%';
-                    document.getElementById('progress-fill-anim').style.width = '44.2%';
+                    if(document.getElementById('vessel-fill-anim')) document.getElementById('vessel-fill-anim').style.height = '63.7%';
+                    if(document.getElementById('progress-fill-anim')) document.getElementById('progress-fill-anim').style.width = '44.2%';
                     document.querySelectorAll('.count-up-money').forEach(el =>
                         animateValue(el, 0, parseFloat(el.getAttribute('data-target')), 2200, '$', 'M')
                     );
@@ -598,7 +627,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         }, {
-            threshold: 0.5,   // was 0.3 — now half the vessel must be visible
+            threshold: 0.5,   
             rootMargin: '0px 0px -5% 0px'
         });
 
@@ -790,7 +819,6 @@ document.addEventListener("DOMContentLoaded", () => {
         new p5(createSpiralSketch('canvas-month3', month3Data, month3Settings, 'Phase 02'), 'canvas-month3');
     }
 
-    // FIX: spiral canvases fade in at threshold 0.35 (was 0.2) so they're clearly visible first
     const spiralFadeElements = document.querySelectorAll('.canvas-wrapper');
     const chartObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -799,6 +827,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 chartObserver.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.35 });  // was 0.2
+    }, { threshold: 0.35 });
     spiralFadeElements.forEach(el => chartObserver.observe(el));
 });
