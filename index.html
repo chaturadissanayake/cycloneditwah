@@ -7,12 +7,15 @@
     
     <link rel="stylesheet" href="style.css">
     
-    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700;1,9..144,900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 </head>
 <body>
+
+    <div id="site-tooltip" class="tooltip-glass"></div>
 
     <div class="progress-bar-container">
         <div class="progress-bar" id="progressBar"></div>
@@ -21,12 +24,12 @@
     <header class="hero text-center">
         <div class="hero-content reading-lane fade-up">
             <h1 class="hero-title">How a Single Storm Broke Sri Lanka</h1>
-            <p class="hero-subtitle">A data story exploring how Cyclone Ditwah paralyzed our infrastructure, stopped school for 555,609 children, and left a critical gap in the recovery effort.</p>
+            <p class="hero-subtitle">A data story exploring how Cyclone Ditwah paralyzed our infrastructure, stopped school for 526,609 children, and left a critical gap in the recovery effort.</p>
             
             <div class="hero-bylines">
                 <p class="author-list">By <a href="https://www.linkedin.com/in/chaturadissanayake/" target="_blank">Chatura Dissanayake</a> and <a href="https://www.linkedin.com/in/imali-nillekumbura/" target="_blank">Imali Nillekumbura</a></p>
                 <div class="meta-row">
-                    <span class="pub-date">Published March 24, 2026 • 10:00 AM GMT+5:30</span>
+                    <span class="pub-date">Published March 24, 2026</span>
                     <span class="read-time">Estimated Read: 18 Min</span>
                 </div>
             </div>
@@ -37,47 +40,100 @@
         
         <section class="story-section">
             <div class="reading-lane fade-up">
-                <p class="dropcap">On November 28, 2025, life as we knew it stopped. Cyclone Ditwah hit our eastern shores with a force not felt in a generation. It wasn't just a severe weather event; it was the exact moment the power lines, the roads, and the bridges we depend on failed all at once. Within four hours of landfall, gale-force winds of 120km/h plunged nearly 4 million people into total darkness, instantly stripping away the foundational infrastructure of the modern nation.</p>
-                
-                <p>What started as a low-pressure anomaly in the Bay of Bengal rapidly intensified into a super-cyclonic storm. As it made landfall, the sheer volume of water overwhelmed both natural catchments and man-made reservoirs, triggering a cascading failure across the island. The systems built to protect and connect citizens collapsed simultaneously.</p>
+                <p class="dropcap">On November 28, 2025, life as we knew it stopped. Cyclone Ditwah hit our eastern shores with a force not felt in a generation. It wasn't just a severe weather event; it was the exact moment the power lines, the roads, and the bridges we depend on failed all at once. Within four hours of landfall, gale-force winds of 120km/h plunged nearly 4 million people into total darkness.</p>
+                <p>What started as a low-pressure anomaly in the Bay of Bengal rapidly intensified into a super-cyclonic storm. The systems built to protect and connect citizens collapsed simultaneously. Early reports from the ground were fragmented, painting a grim but incomplete picture of the coastal damage.</p>
+                <p>It would take months for the floodwaters to fully recede and the isolated highland communities to be reached. Only then did the true, compounding scale of the disaster reveal itself.</p>
             </div>
         </section>
 
-        <section class="scroll-sequence bg-dark" id="unified-sequence">
-            <div class="sequence-overlay">
-                <div class="seq-top reading-lane">THE COLLAPSE TIMELINE</div>
-                <div class="seq-bottom reading-lane">Scroll to witness the structural failure</div>
-            </div>
-            <div class="sequence-container">
-                <img src="Assets/SlideOne.webp" class="seq-img" alt="Sequence frame 1" loading="lazy">
-                <img src="Assets/SlideTwo.webp" class="seq-img" alt="Sequence frame 2" loading="lazy">
-                <img src="Assets/SlideThree.webp" class="seq-img" alt="Sequence frame 3" loading="lazy">
-                <img src="Assets/SlideFour.webp" class="seq-img" alt="Sequence frame 4" loading="lazy">
-                <img src="Assets/SlideFive.webp" class="seq-img" alt="Sequence frame 5" loading="lazy">
-                <img src="Assets/SlideSix.webp" class="seq-img" alt="Sequence frame 6" loading="lazy">
-                <img src="Assets/SlideSeven.webp" class="seq-img" alt="Sequence frame 7" loading="lazy">
-                <img src="Assets/SlideEight.webp" class="seq-img" alt="Sequence frame 8" loading="lazy">
-                <img src="Assets/SlideNine.webp" class="seq-img" alt="Sequence frame 9" loading="lazy">
-                <img src="Assets/SlideTen.webp" class="seq-img" alt="Sequence frame 10" loading="lazy">
-                <img src="Assets/SlideEleven.webp" class="seq-img" alt="Sequence frame 11" loading="lazy">
-                <img src="Assets/SlideTwelve.webp" class="seq-img" alt="Sequence frame 12" loading="lazy">
-                <img src="Assets/SlideThirteen.webp" class="seq-img" alt="Sequence frame 13" loading="lazy">
-                <img src="Assets/SlideFourteen.webp" class="seq-img" alt="Sequence frame 14" loading="lazy">
-            </div>
-        </section>
+        <div class="stage-lane mt-base fade-up">
+            <section id="sect-spirals" class="ditwah-section" style="padding-top: 0;">
+                <div class="editorial-legend">
+                    <div class="legend-title">DAMAGE ASSESSMENT</div>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <svg class="legend-swatch affected" viewBox="0 0 123 231"><path d="M67.92,1.63c.39-.96,1.79-.78,1.92.24.89,6.91,2.28,15.58,4.53,25.45.99,4.35,4.66,19.9,12.5,40.17,2.2,5.69,5.91,13.96,13.33,30.5,7.83,17.46,10.07,21.8,13.83,31.83,4.55,12.11,6.84,18.35,8,27.33.81,6.26,1.93,15.65-1,27.33-3.38,13.48-10.21,22.34-12.83,25.5-3.2,3.86-8.17,9.76-16.67,14.17-8,4.15-15.23,4.95-24.67,6-5.26.58-10.27,1.14-16.83.5-4.2-.41-14.54-1.42-24.17-7.33-15.51-9.52-20.33-26.34-22.33-33.33-3.69-12.87-2.62-23.22-1.33-34.5,1.9-16.66,6.37-28.11,14.17-47.83,3.16-7.99,10.39-25.52,21.83-46.83,7.44-13.86,11-18.76,18.17-33.33,5.04-10.24,8.86-19.16,11.55-25.85Z"/></svg>
+                            = 1,000 people affected
+                        </div>
+                        <div class="legend-item">
+                            <svg class="legend-swatch casualties" viewBox="0 0 123 231"><path d="M67.92,1.63c.39-.96,1.79-.78,1.92.24.89,6.91,2.28,15.58,4.53,25.45.99,4.35,4.66,19.9,12.5,40.17,2.2,5.69,5.91,13.96,13.33,30.5,7.83,17.46,10.07,21.8,13.83,31.83,4.55,12.11,6.84,18.35,8,27.33.81,6.26,1.93,15.65-1,27.33-3.38,13.48-10.21,22.34-12.83,25.5-3.2,3.86-8.17,9.76-16.67,14.17-8,4.15-15.23,4.95-24.67,6-5.26.58-10.27,1.14-16.83.5-4.2-.41-14.54-1.42-24.17-7.33-15.51-9.52-20.33-26.34-22.33-33.33-3.69-12.87-2.62-23.22-1.33-34.5,1.9-16.66,6.37-28.11,14.17-47.83,3.16-7.99,10.39-25.52,21.83-46.83,7.44-13.86,11-18.76,18.17-33.33,5.04-10.24,8.86-19.16,11.55-25.85Z"/></svg>
+                            = 1 casualty
+                        </div>
+                        <div class="legend-item">
+                            <svg class="legend-swatch missing" viewBox="0 0 123 231"><path d="M67.92,1.63c.39-.96,1.79-.78,1.92.24.89,6.91,2.28,15.58,4.53,25.45.99,4.35,4.66,19.9,12.5,40.17,2.2,5.69,5.91,13.96,13.33,30.5,7.83,17.46,10.07,21.8,13.83,31.83,4.55,12.11,6.84,18.35,8,27.33.81,6.26,1.93,15.65-1,27.33-3.38,13.48-10.21,22.34-12.83,25.5-3.2,3.86-8.17,9.76-16.67,14.17-8,4.15-15.23,4.95-24.67,6-5.26.58-10.27,1.14-16.83.5-4.2-.41-14.54-1.42-24.17-7.33-15.51-9.52-20.33-26.34-22.33-33.33-3.69-12.87-2.62-23.22-1.33-34.5,1.9-16.66,6.37-28.11,14.17-47.83,3.16-7.99,10.39-25.52,21.83-46.83,7.44-13.86,11-18.76,18.17-33.33,5.04-10.24,8.86-19.16,11.55-25.85Z"/></svg>
+                            = 1 missing person
+                        </div>
+                    </div>
+                </div>
+        
+                <div class="spiral-dashboard">
+                    <section class="viz-panel panel-day1">
+                        <header class="viz-header">
+                            <span class="demo-kicker text-dust">Phase 01 · Landfall</span>
+                            <h2 class="demo-headline">Initial Impact</h2>
+                            <p class="demo-lead">Sri Lanka — November 29, 2025</p>
+                            <p class="demo-context">In the immediate chaos of landfall, communication lines are severed. These numbers represent only the initial, localized search and rescue reports before wider access was restored.</p>
+                            
+                            <div class="stats-row">
+                                <div class="stat-block">
+                                    <div class="demo-metric-val">800k</div>
+                                    <div class="demo-metric-label">Affected</div>
+                                </div>
+                                <div class="stat-block">
+                                    <div class="demo-metric-val highlight">159</div>
+                                    <div class="demo-metric-label highlight">Casualties</div>
+                                </div>
+                                <div class="stat-block">
+                                    <div class="demo-metric-val text-dust">203</div>
+                                    <div class="demo-metric-label">Missing</div>
+                                </div>
+                            </div>
+                        </header>
+                        <div id="canvas-day1" class="canvas-wrapper"></div>
+                    </section>
+        
+                    <div class="time-divider">
+                        <div class="time-line"></div>
+                        <span class="time-badge">Three months pass</span>
+                        <div class="time-line"></div>
+                    </div>
+        
+                    <section class="viz-panel panel-month3">
+                        <header class="viz-header">
+                            <span class="demo-kicker">Phase 02 · Compounding Crisis</span>
+                            <h2 class="demo-headline">The Confirmed Toll</h2>
+                            <p class="demo-lead">Sri Lanka — March 2026</p>
+                            <p class="demo-context">As floodwaters recede and isolated regions are finally reached, the true scale of the disaster is uncovered. The missing become confirmed casualties, and the compounding lack of infrastructure causes the affected numbers to swell.</p>
+                            
+                            <div class="stats-row">
+                                <div class="stat-block">
+                                    <div class="demo-metric-val">2.3M</div>
+                                    <div class="demo-metric-label">Affected</div>
+                                </div>
+                                <div class="stat-block">
+                                    <div class="demo-metric-val highlight">646</div>
+                                    <div class="demo-metric-label highlight">Casualties</div>
+                                </div>
+                                <div class="stat-block">
+                                    <div class="demo-metric-val text-dust">173</div>
+                                    <div class="demo-metric-label">Missing</div>
+                                </div>
+                            </div>
+                        </header>
+                        <div id="canvas-month3" class="canvas-wrapper"></div>
+                    </section>
+                </div>
+            </section>
+        </div>
 
-        <section class="story-section">
+        <section class="story-section bg-alt">
             <div class="reading-lane fade-up">
-                <h2 class="subhead">A Systemic Collapse</h2>
-                <p>The tragedy moved exponentially faster than the relief operations could mobilize. While urban drainage systems in the western provinces were immediately overwhelmed—transforming city streets into navigable rivers—a far more violent geological collapse was occurring in the central highlands.</p>
-                
-                <p>The sheer volume of rainfall, exceeding historical maximums, saturated the terraced slopes and delicate root systems beyond their critical threshold. The landscape simply could not hold the weight of the water.</p>
-                
+                <h2 class="subhead">The Arteries Severed</h2>
+                <p>To understand how 800,000 affected people rapidly swelled to 2.3 million, one must look at the physical terrain. The tragedy moved exponentially faster than the relief operations could mobilize because the very roads needed for rescue were the first things to wash away.</p>
+                <p>The sheer volume of rainfall, exceeding historical maximums, saturated the terraced slopes and delicate root systems beyond their critical threshold. The physical damage to the country's infrastructure isolated nearly half the island.</p>
                 <blockquote class="pull-quote fade-up">
                     <p>"Access was entirely severed within the first twenty-four hours."</p>
                 </blockquote>
-                
-                <p>Rapid assessments recorded exactly <strong>206 major transit routes permanently blocked</strong> by debris, alongside over <strong>200 active landslide zones</strong> that swallowed hillside communities whole. Emergency response teams found themselves completely cut off, forced to navigate treacherous, unstable terrain on foot while secondary slips continued to threaten survivors.</p>
             </div>
             
             <div class="data-breakout-band fade-up" id="metrics-container">
@@ -85,7 +141,7 @@
                     <div class="metrics-row">
                         <div class="metric-card metric-item">
                             <div class="m-val-wrap">
-                                <span class="m-val counter" data-target="2.2">0</span><span class="m-unit">M</span>
+                                <span class="m-val counter" data-target="2.3">0</span><span class="m-unit">M</span>
                             </div>
                             <span class="m-label">Citizens Impacted</span>
                         </div>
@@ -106,19 +162,44 @@
             </div>
 
             <div class="stage-lane mt-large fade-up">
+                <section id="sect-infra" class="ditwah-section">
+                    <header class="section-header">
+                        <span class="kicker">Damage Assessment</span>
+                        <h2 class="headline">Economic Impact by Sector</h2>
+                        <p class="lead">Over 42% of all financial damages were concentrated entirely in the transport and utilities sector, paralyzing the national grid. Damage assessment in USD billions following the World Bank GRADE Report, Dec 2025.</p>
+                    </header>
+                    <div class="chart-wrapper">
+                        <svg id="reuters-chart" class="svg-container" viewBox="0 0 800 350"></svg>
+                        <div class="footer">Source: World Bank GRADE Report</div>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <section class="story-section">
+            <div class="reading-lane fade-up">
+                <h2 class="subhead">The Scars on the Earth</h2>
+                <p>The $1.7 billion in infrastructure damage is an abstraction until you view the landscape from above. In the central highlands, the storm did not just flood villages; it fundamentally altered the topography. Saturated soil gave way, creating massive, high-velocity mudslides that erased generational settlements in seconds.</p>
+                <p>Geologists studying the aftermath have warned that the soil stability in the Kandy district and surrounding areas may take decades to normalize, rendering previously safe zones entirely uninhabitable.</p>
+            </div>
+
+            <div class="stage-lane fade-up mt-large">
                 <div class="comparison-slider-wrapper" id="comparison-slider">
                     <div class="img-layer after-img">
                         <img src="Assets/ditwahafter.png" alt="Landscape permanently altered by mudslide" loading="lazy">
+                        <div class="slider-label label-after">AFTER</div>
                     </div>
                     <div class="img-layer before-img" id="before-layer">
                         <img src="Assets/ditwahbefore.png" alt="Intact village before the storm" loading="lazy">
+                        <div class="slider-label label-before">BEFORE</div>
                     </div>
                     <div class="slider-handle" id="handle" role="slider" aria-valuenow="50">
-                        <span class="handle-arrows">&lsaquo; &rsaquo;</span>
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
                     </div>
                 </div>
                 <div class="stage-annotation text-center">
-                    <p>Note: Swipe to see how a village in Kandy was transformed into a mudslide channel overnight. Geologists warn soil stability may take decades to normalize.</p>
+                    <p>Note: Swipe to see how a village in Kandy was transformed into a mudslide channel overnight. Topography data from DMC spatial records.</p>
                 </div>
             </div>
         </section>
@@ -126,10 +207,11 @@
         <section class="story-section bg-alt">
             <div class="reading-lane fade-up">
                 <h2 class="subhead">The Anatomy of the Storm</h2>
-                <p>Cyclone Ditwah did not strike uniformly; it dragged its destruction across the island in three distinct, devastating phases. Tracing its chronological path reveals why different provinces suffered entirely different forms of systemic failure—from coastal flooding in the south to geological collapse in the center, and widespread agricultural ruin as it exited the north.</p>
+                <p>Cyclone Ditwah did not strike uniformly; it dragged its destruction across the island in three distinct, devastating phases. Tracing its chronological path reveals why different provinces suffered entirely different forms of systemic failure.</p>
+                <p>While the south faced immediate coastal inundation, the center experienced geological collapse, and the north endured the long-term ruin of its agricultural basins. Each phase required a different emergency response, splintering the already stretched national resources.</p>
             </div>
 
-            <div class="stage-lane fade-up">
+            <div class="stage-lane fade-up mt-large">
                 <div class="editorial-carousel-wrapper">
                     <div class="editorial-carousel" id="mapCarousel">
                         <div class="editorial-slide">
@@ -141,7 +223,7 @@
                                     <span class="phase-tag">Phase 01</span>
                                     <h4 class="phase-title">The Landfall</h4>
                                 </div>
-                                <p>Cyclone Ditwah initiated its assault on the southern and eastern coastlines. It brought an unprecedented storm surge that instantly overwhelmed coastal defenses, swallowing fishing towns and submerging the primary coastal highway within minutes of landfall.</p>
+                                <p>Cyclone Ditwah initiated its assault on the southern coastlines. It brought an unprecedented storm surge that instantly overwhelmed coastal defenses, submerging primary highways within an hour.</p>
                             </div>
                         </div>
                         <div class="editorial-slide">
@@ -153,7 +235,7 @@
                                     <span class="phase-tag">Phase 02</span>
                                     <h4 class="phase-title">Highland Collapse</h4>
                                 </div>
-                                <p>As the system moved inland, it stalled over the central hills, dumping a month's worth of rain in roughly 12 hours. The saturated earth reached its geological limit, triggering hundreds of landslides that isolated entire towns and destroyed the highland infrastructure grid.</p>
+                                <p>The system moved inland and stalled over the central hills, dumping a month's worth of rain in roughly 12 hours. The saturated earth triggered hundreds of landslides, isolating entire towns.</p>
                             </div>
                         </div>
                         <div class="editorial-slide">
@@ -165,7 +247,7 @@
                                     <span class="phase-tag">Phase 03</span>
                                     <h4 class="phase-title">The Northern Exit</h4>
                                 </div>
-                                <p>Finally, the weakened but highly saturated storm system tracked northwards to exit the island. While wind speeds dropped, it left a trail of severe flash flooding across the northern plains, heavily devastating the primary agricultural zones just before the harvest.</p>
+                                <p>Finally, the weakened storm system tracked northwards. While wind speeds dropped, it left a trail of severe flash flooding across the northern plains, devastating the primary agricultural zones just before harvest.</p>
                             </div>
                         </div>
                     </div>
@@ -178,92 +260,187 @@
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18l6-6-6-6"/></svg>
                         </button>
                     </div>
-                </div>
-                
-                <div class="map-controls fade-up">
-                    <button id="openMapBtn" class="btn-primary">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-                        Click to view full map
-                    </button>
-                </div>
-            </div>
 
-            <div class="stage-lane mt-large fade-up">
-                <div class="data-viz-placeholder">
-                    <h3 class="placeholder-title">Displacement Arc: The Slow Return</h3>
-                    <p class="placeholder-desc" style="color: #666;">[Primary Chart Placeholder: Timeline showing the rapid displacement spike to <strong style="color: var(--accent)">230,000</strong> on Day 4, and the slow, stalled plateau at <strong style="color: var(--accent)">153,000</strong> remaining displaced today.]</p>
+                    <div class="map-controls">
+                        <button id="openMapBtn" class="btn-primary">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                            View Full Map
+                        </button>
+                    </div>
                 </div>
             </div>
         </section>
 
         <section class="story-section">
             <div class="reading-lane fade-up">
-                <h2 class="subhead">Survival Over Schooling</h2>
-                <p>The crisis extended far beyond broken buildings. While an island-wide assessment found that 1,382 schools were severely damaged, the intact schools were immediately requisitioned and repurposed into emergency safety hubs. This created a secondary crisis: you cannot resume classes if the classroom is actively being used as a bedroom for displaced families.</p>
-            </div>
-
-            <div class="stage-lane fade-up parallax-container mt-base">
-                <img src="Assets/ImageThree.webp" class="visual-asset parallax-img" alt="Dot matrix showing 1382 affected schools" loading="lazy">
-                <div class="stage-annotation text-center">
-                    <p>Note: Education infrastructure functioning as survival infrastructure. 555,609 students are currently cut off from both classes and their primary source of daily nutrition.</p>
-                </div>
+                <h2 class="subhead">The Silent Handoff</h2>
+                <p>As the immediate physical danger subsided, a slower, more insidious crisis began: human displacement. The official government narrative often ends when the search and rescue phase concludes. But the data tells a vastly different story about who actually shouldered the burden of the displaced.</p>
+                <p>Tracking the location of the displaced reveals a crucial "crossover" moment in late December. As official state-run safety centers closed, the people inside them did not go home—they couldn't. Instead, they were quietly absorbed into the homes of neighbors, extended family, and complete strangers.</p>
             </div>
 
             <div class="stage-lane mt-large fade-up">
-                <div class="data-viz-placeholder">
-                    <h3 class="placeholder-title">The Education Paralysis</h3>
-                    <p class="placeholder-desc" style="color: #666;">[Combined Chart Placeholder: Visualizing the paradox of <strong style="color: var(--accent)">555,609 children</strong> lacking education alongside the <strong style="color: var(--accent)">500+ schools</strong> actively being used as survival shelters.]</p>
-                </div>
+                <section id="sect-arc" class="ditwah-section">
+                    <header class="section-header">
+                        <span class="kicker">Displacement Tracking</span>
+                        <h2 class="headline">The Unresolved Displacement Arc</h2>
+                        <p class="lead">By January, the state stepped back and host families absorbed the burden silently. The crisis did not end in December; new rains in March forced over 149,000 people back into emergency centers.</p>
+                    </header>
+                    <div class="chart-container" id="interaction-area">
+                        <div class="legend">
+                            <div class="legend-item"><div class="dot dot-red"></div> Safety Centres</div>
+                            <div class="legend-item"><div class="dot dot-charcoal"></div> Host Families</div>
+                        </div>
+                        <svg id="main-chart" class="svg-content" viewBox="0 0 900 450">
+                            <g id="grid"></g>
+                            <path id="area-host" class="area-host" opacity="0.9"></path>
+                            <path id="area-safety" class="area-safety" opacity="0.85"></path>
+                            <g id="annotations"></g>
+                            <line id="tracker" class="tracker-line" x1="0" y1="40" x2="0" y2="400"></line>
+                        </svg>
+                        <div class="footer">Source: UN OCHA / World Bank GRADE Report (2025-2026)</div>
+                    </div>
+                </section>
             </div>
         </section>
 
         <section class="story-section bg-alt">
             <div class="reading-lane fade-up">
-                <h2 class="subhead">The Chain Reaction</h2>
-                <p>When the floodwaters finally receded, they left a silent, long-term economic crisis in the soil. The storm hit exactly when farmers were planting rice for the Maha season. Nearly 20% of the country's cultivated land—over 148,410 hectares—was wiped out in a single weekend. The foundation of the nation's food supply fractured overnight, leaving 70,000 smallholder farmers without insurance or an immediate path back to the fields.</p>
-                <p>This massive reduction in yield is why a simple vegetable now costs three times what it did last year. The physical damage to the land triggered an immediate chain reaction, resulting in a devastating surge in basic market pricing for urban populations.</p>
-            </div>
-
-            <div class="stage-lane fade-up parallax-container mt-base">
-                <img src="Assets/ImageFour.webp" class="visual-asset parallax-img" alt="Total Cultivated Land Ruined" loading="lazy">
-                <div class="stage-annotation text-center">
-                    <p>Source: Ministry of Agriculture Land Audit.</p>
-                </div>
+                <h2 class="subhead">Survival Over Schooling</h2>
+                <p>The displacement crisis extended far beyond broken buildings into the institutions designed to protect the future. While an island-wide assessment found that 1,339 schools were severely damaged structurally, the intact schools were immediately requisitioned and repurposed into emergency safety hubs.</p>
+                <p>This created a devastating secondary crisis: a zero-sum game of survival versus education. You cannot resume classes if the classroom is actively being used as a bedroom for displaced families. Education needs eclipsed every other humanitarian sector, leaving an entire generation's progress stalled.</p>
             </div>
 
             <div class="stage-lane mt-large fade-up">
-                <div class="data-viz-placeholder">
-                    <h3 class="placeholder-title">From Field to Table: The Cost of Scarcity</h3>
-                    <p class="placeholder-desc" style="color: #666;">[System Flow Chart Placeholder: Connecting <strong style="color: var(--accent)">148,410 hectares</strong> of destroyed crops → to the resulting <strong style="color: var(--accent)">price surges</strong> of essentials → culminating in <strong style="color: var(--accent)">32% of affected households</strong> now facing severe food insecurity.]</p>
-                </div>
+                <section id="sect-matrix" class="ditwah-section">
+                    <header class="section-header">
+                        <span class="kicker">Sectoral Priority: Education</span>
+                        <h2 class="headline">526,609 Children Out of Class</h2>
+                        <p class="lead">Over half a million students were displaced. Sri Lanka's 10,076 schools were forced to halt academics, as functional classrooms became emergency bedrooms overnight.</p>
+                    </header>
+
+                    <div class="matrix-wrapper">
+                        <div class="legend-grid">
+                            <div class="legend-item" data-cat="damaged">
+                                <span class="legend-val val-damaged">1,339</span>
+                                <span class="legend-label"><span class="dot dot-damaged"></span> Structural Damage</span>
+                            </div>
+                            <div class="legend-item" data-cat="shelter">
+                                <span class="legend-val val-shelter">500</span>
+                                <span class="legend-label"><span class="dot dot-shelter"></span> Conversion to Shelter</span>
+                            </div>
+                            <div class="legend-item" data-cat="closed">
+                                <span class="legend-val val-closed">147</span>
+                                <span class="legend-label"><span class="dot dot-closed"></span> Blocked/Unable to Open</span>
+                            </div>
+                            <div class="legend-item" data-cat="open">
+                                <span class="legend-val val-open">8,090</span>
+                                <span class="legend-label"><span class="dot dot-open"></span> Theoretically Open</span>
+                            </div>
+                        </div>
+
+                        <div class="viz-container">
+                            <canvas id="matrix-canvas"></canvas>
+                        </div>
+
+                        <div class="footer">
+                            <span>Source: UNICEF SitRep No. 5 (Dec 26, 2025)</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+            
+        <section class="story-section">
+            <div class="reading-lane fade-up">
+                <h2 class="subhead">The Chain Reaction</h2>
+                <p>When the floodwaters finally receded, they left a silent, long-term economic crisis buried in the soil. The storm hit exactly when farmers were planting rice for the Maha season. Nearly 20% of the country's cultivated land—over 148,410 hectares—was wiped out in a single weekend.</p>
+                <p>The foundation of the nation's food supply fractured overnight, leaving 70,000 smallholder farmers without insurance or an immediate path back to the fields. This massive reduction in yield is why a simple vegetable now costs three times what it did last year. The physical damage to the land triggered an immediate chain reaction, resulting in a devastating surge in basic market pricing for urban populations.</p>
             </div>
         </section>
 
-        <section class="story-section">
+        <section class="story-section bg-alt">
             <div class="reading-lane fade-up">
                 <h2 class="subhead">The Cost of Silence</h2>
-                <p>Physical and economic recovery requires significant, immediate capital, yet international aid has been severely delayed. The gap between what is urgently needed on the ground and what has actually arrived in the treasury is leaving millions vulnerable, effectively halting national stabilization efforts.</p>
-            </div>
-
-            <div class="stage-lane fade-up parallax-container mt-base">
-                <img src="Assets/ImageFive.webp" class="visual-asset parallax-img" alt="Funding Gap Representation" loading="lazy">
-                <div class="stage-annotation text-center">
-                    <p>Source: UN OCHA Financial Tracking Service.</p>
-                </div>
+                <p>Physical and economic recovery requires significant, immediate capital. The United Nations launched the Humanitarian Priorities Plan (HPP) to coordinate this capital effectively. Yet, international aid has been severely fragmented.</p>
+                <p>The gap between what is urgently needed on the ground and what has actually arrived in the treasury is leaving millions vulnerable. Worse still, major international donors opted to bypass the coordinated system entirely, creating a "shadow flow" of funds that failed to reach the most critical targets.</p>
             </div>
 
             <div class="stage-lane mt-large fade-up">
-                <div class="data-viz-placeholder">
-                    <h3 class="placeholder-title">Need vs. Reality</h3>
-                    <p class="placeholder-desc" style="color: #666;">[Gap Chart Placeholder: Dual bar chart showing Total Affected (<strong style="color: var(--accent)">2.2M</strong>) vs. Total Reached (<strong style="color: var(--accent)">250K</strong>), alongside Required Funding (<strong style="color: var(--accent)">$35M</strong>) vs. Received Aid (<strong style="color: var(--accent)">~$23M</strong>).]</p>
-                </div>
+                <section id="sect-funding" class="ditwah-section">
+                    <header class="section-header">
+                        <span class="kicker">Coordinated Humanitarian Finance</span>
+                        <h2 class="headline">The System Bypass & The February Plateau</h2>
+                        <p class="lead">By April 3, 2026, the $35.3M HPP target hit a terminal flatline. While shadow funding (external flows) continued to bypass the system, the coordinated effort remained $12.8M short of its goal.</p>
+                    </header>
+
+                    <div class="funding-spread">
+                        <div class="stage">
+                            <div class="vessel-area">
+                                <div class="vessel-frame" id="hpp-vessel">
+                                    <div class="target-cap"></div>
+                                    <div class="vessel-fill" id="vessel-fill-anim"></div>
+                                </div>
+
+                                <div class="label-anchor label-target">
+                                    <b>$35.3M</b> HPP Target (April 2026)
+                                    <div class="line-leader line-right"></div>
+                                </div>
+                                <div class="label-anchor label-launch">
+                                    <b>$10.0M</b> Dec 23 Launch
+                                    <div class="line-leader line-right"></div>
+                                </div>
+                                <div class="label-anchor label-plateau">
+                                    <div class="line-leader line-left-red"></div>
+                                    <span class="plateau-kicker">FEB 6 PLATEAU</span>
+                                    <b class="count-up-money" data-target="22.4">$0.0M</b>
+                                </div>
+                                <div class="label-anchor label-current">
+                                    <div class="line-leader line-left"></div>
+                                    <b class="count-up-money" data-target="22.5">$0.0M</b> Funded (April 3)
+                                    <span class="growth-metric">+0.2% Growth since February</span>
+                                </div>
+                            </div>
+
+                            <div class="conduit-area" id="shadow-flow">
+                                <div class="conduit-label">Shadow Funding</div>
+                                <div class="conduit-pipe"></div>
+                                <p class="conduit-desc">Bypassing Coordinated Response</p>
+                            </div>
+
+                            <aside class="insights">
+                                <div class="fact-card">
+                                    <span class="fact-kicker">Conversion Efficiency</span>
+                                    <p class="fact-num"><span class="count-up-pct" data-target="44.2">0.0</span>%</p>
+                                    <div class="progress-meter"><div class="progress-fill" id="progress-fill-anim"></div></div>
+                                    <p class="fact-desc">Only <strong>291,000 reached</strong> out of 658,000 high-priority targets. Coordinated aid failed to scale with the need.</p>
+                                </div>
+
+                                <div class="fact-text-only">
+                                    <span class="fact-kicker-dark">The Funding Flatline</span>
+                                    <p class="fact-desc-dark">Aid essentially ceased in February. The vessel grew by less than $100,000 in the final 60 days, while the human displacement remained unresolved.</p>
+                                </div>
+                            </aside>
+                        </div>
+
+                        <footer class="closure-box">
+                            <div>
+                                <span class="closure-kicker">Final Count: April 3, 2026</span>
+                                <div class="closure-num">149,000</div>
+                            </div>
+                            <div class="closure-context">
+                                <p class="closure-title">Still Displaced</p>
+                                <p class="closure-desc">The formal response has officially ended. With no successor plan, 149k people remain in limbo as the HPP clock runs out.</p>
+                            </div>
+                        </footer>
+                    </div>
+                </section>
             </div>
         </section>
 
         <section class="story-section mb-large">
             <div class="reading-lane fade-up text-center">
                 <h2 class="subhead">The Scars Left Behind</h2>
-                <p>The story of Cyclone Ditwah isn't over—it is simply getting quieter. With agricultural funding still facing a massive deficit and over 150,000 people yet to return home, the recovery rate has completely stalled. We cannot just wait for the next monsoon. Bridging this gap is the only way to ensure our island stays resilient against the storms to come. The island we see today is fundamentally not the same one we lived on before November 2025.</p>
+                <p>The story of Cyclone Ditwah isn't over—it is simply getting quieter. With agricultural funding still facing a massive deficit and over 149,000 people yet to return home, the recovery rate has completely stalled. We cannot just wait for the next monsoon. Bridging this gap is the only way to ensure our island stays resilient against the storms to come. The island we see today is fundamentally not the same one we lived on before November 2025.</p>
             </div>
         </section>
 
@@ -271,8 +448,8 @@
             <span class="share-title">Share this story</span>
             <div class="share-line"></div>
             <div class="share-icons">
-                <a href="https://twitter.com/intent/tweet?text=Cyclone%20Ditwah:%20How%20a%20Single%20Storm%20Broke%20Sri%20Lanka&url=https://yourwebsite.com" target="_blank" aria-label="Share on X"><svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
-                <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://yourwebsite.com" target="_blank" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+                <a href="#" aria-label="Share on X"><svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a>
+                <a href="#" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
             </div>
         </section>
 
