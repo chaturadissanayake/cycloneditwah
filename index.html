@@ -12,14 +12,25 @@
 </head>
 <body>
 
+    <div id="desktop-warning-banner">
+        <span>This story was designed for desktop. For charts, maps, and the full experience — open it on a larger screen.</span>
+        <button id="dismiss-banner" aria-label="Dismiss">&times;</button>
+    </div>
+
     <div id="site-tooltip" class="tooltip-glass"></div>
 
     <div class="progress-bar-container">
         <div class="progress-bar" id="progressBar"></div>
+        <div class="chapter-marker" style="left: 15%;" data-chapter="The Storm Hits"></div>
+        <div class="chapter-marker" style="left: 36%;" data-chapter="A Broken System"></div>
+        <div class="chapter-marker" style="left: 55%;" data-chapter="Where Did People Go?"></div>
+        <div class="chapter-marker" style="left: 75%;" data-chapter="Aid and Education"></div>
+        <div class="chapter-marker" style="left: 96%;" data-chapter="The Recovery"></div>
     </div>
 
     <header class="hero">
-        <div class="hero-content reading-lane fade-up">
+        <div id="hero-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></div>
+        <div class="hero-content reading-lane fade-up" style="position: relative; z-index: 1;">
             <h1 class="hero-title">
                 How a Single<br>
                 Storm Broke<br>
@@ -27,7 +38,7 @@
             </h1>
             <p class="hero-subtitle">A clear look at how Cyclone Ditwah destroyed roads, homes, and lives, and where the recovery effort fell short.</p>
             <div class="hero-bylines">
-                <p class="meta-row author-list">
+                <p class="meta-row">
                     <span class="meta-authors">By <a href="https://www.linkedin.com/in/chaturadissanayake/" target="_blank">Chatura Dissanayake</a> & <a href="https://www.linkedin.com/in/imalinillekumbura/" target="_blank">Imali Nillekumbura</a></span>
                 </p>
                 <p class="meta-row">
@@ -73,7 +84,7 @@
             </div>
         </div>
 
-        <div class="stage-lane mt-base fade-up">
+        <div class="stage-lane mt-large fade-up">
             <section id="sect-spirals" class="ditwah-section" style="padding-top: 0; position: relative;">
                 
                 <div class="editorial-legend sticky-element">
@@ -101,10 +112,12 @@
                             <h2 class="demo-headline">The First 24 Hours</h2>
                             <p class="demo-lead">Sri Lanka — November 29, 2025</p>
                             <p class="demo-context">Early estimates gathered before power and phone lines were fully restored.</p>
-                            <p class="interaction-hint">
-                                <span class="desktop-only">HOVER SHAPES TO VIEW DETAILS</span>
-                                <span class="mobile-only">TAP SHAPES TO VIEW DETAILS</span>
-                            </p>
+                            
+                            <span class="interaction-hint">
+                                <span class="desktop-only">Hover shapes to view details</span>
+                                <span class="mobile-only">Tap shapes to view details</span>
+                            </span>
+
                             <div class="stats-row">
                                 <div class="stat-block"><div class="demo-metric-val">800k</div><div class="demo-metric-label">Affected</div></div>
                                 <div class="stat-block"><div class="demo-metric-val highlight">159</div><div class="demo-metric-label highlight">Lives Lost</div></div>
@@ -126,10 +139,12 @@
                             <h2 class="demo-headline">The Final Count</h2>
                             <p class="demo-lead">Sri Lanka — March 2026</p>
                             <p class="demo-context">Once the floods dried up and roads cleared, the true number of victims was much worse than anyone thought.</p>
-                            <p class="interaction-hint">
-                                <span class="desktop-only">HOVER SHAPES TO VIEW DETAILS</span>
-                                <span class="mobile-only">TAP SHAPES TO VIEW DETAILS</span>
-                            </p>
+                            
+                            <span class="interaction-hint">
+                                <span class="desktop-only">Hover shapes to view details</span>
+                                <span class="mobile-only">Tap shapes to view details</span>
+                            </span>
+
                             <div class="stats-row">
                                 <div class="stat-block"><div class="demo-metric-val">2.3M</div><div class="demo-metric-label">Affected</div></div>
                                 <div class="stat-block"><div class="demo-metric-val highlight">646</div><div class="demo-metric-label highlight">Lives Lost</div></div>
@@ -157,12 +172,14 @@
                         <span class="kicker">Damage Assessment</span>
                         <h2 class="headline">Destroyed Roads and Buildings</h2>
                         <p class="lead">Over 42% of the total financial damage was from ruined roads, bridges, and water pipes. Damage shown in USD billions.</p>
-                        <p class="interaction-hint">
-                            <span class="desktop-only">HOVER BARS TO VIEW DETAILS</span>
-                            <span class="mobile-only">TAP BARS TO VIEW DETAILS</span>
-                        </p>
+                        
+                        <span class="interaction-hint">
+                            <span class="desktop-only">Hover bars to view details</span>
+                            <span class="mobile-only">Tap bars to view details</span>
+                        </span>
+
                     </header>
-                    <div class="chart-wrapper full-edge-mobile">
+                    <div class="chart-wrapper">
                         <svg id="reuters-chart" class="svg-container" viewBox="0 0 800 350"></svg>
                         <div class="footer">Source: World Bank GRADE Report</div>
                     </div>
@@ -177,7 +194,7 @@
             </div>
 
             <div class="stage-lane fade-up mt-large">
-                <div class="comparison-slider-wrapper locked-aspect" id="comparison-slider">
+                <div class="comparison-slider-wrapper" id="comparison-slider">
                     <div class="img-layer after-img">
                         <img src="Assets/ditwahafter.png" alt="Landscape permanently altered by mudslide" loading="lazy">
                         <div class="slider-label label-after">AFTER</div>
@@ -189,11 +206,10 @@
                     <div class="minimal-handle" id="handle" role="slider" aria-valuenow="50"></div>
                 </div>
                 <div class="stage-annotation text-center">
-                    <p class="interaction-hint">
-                        <span class="desktop-only">DRAG HANDLE TO COMPARE MAPS</span>
-                        <span class="mobile-only">DRAG HANDLE TO COMPARE MAPS</span>
-                    </p>
-                    <p style="font-family: var(--font-ui); font-size: 11px; color: var(--dust); margin-top: -12px;">Note: Maps showing changes to the land.</p>
+                    <span class="interaction-hint" style="margin-bottom: 12px;">
+                        <span>Drag handle to compare maps</span>
+                    </span>
+                    <p style="font-family: var(--font-ui); font-size: 11px; color: var(--dust); margin-top: 0;">Note: Maps showing changes to the land.</p>
                 </div>
             </div>
         </section>
@@ -205,20 +221,67 @@
             </div>
 
             <div class="stage-lane fade-up mt-large">
-                <div class="editorial-carousel-wrapper">
+                
+                <div class="storm-phases-wrapper desktop-only" style="width: 100%;">
                     
-                    <p class="interaction-hint text-center mobile-only" style="margin: 0 auto 16px auto;">
-                        <span>SWIPE MAPS TO EXPLORE PHASES</span>
-                    </p>
+                  <div class="storm-phase-row" data-phase="01">
+                    <div class="storm-phase-meta">
+                      <div class="storm-phase-number">01</div>
+                      <div class="storm-phase-rule"></div>
+                      <h3 class="storm-phase-title">Coastal Flooding</h3>
+                      <p class="storm-phase-desc">Huge waves crashed over the coast, completely covering main roads and bridges within an hour.</p>
+                    </div>
+                    <div class="storm-phase-visual">
+                      <img src="Assets/mapbottom.webp" alt="Phase 01 — Coastal Flooding Map" loading="lazy" class="storm-phase-img">
+                    </div>
+                  </div>
+
+                  <div class="storm-phase-row phase-row-reverse" data-phase="02">
+                    <div class="storm-phase-meta">
+                      <div class="storm-phase-number">02</div>
+                      <div class="storm-phase-rule"></div>
+                      <h3 class="storm-phase-title">Mountain Landslides</h3>
+                      <p class="storm-phase-desc">The storm stalled over the hills, pouring rain until the ground gave way, trapping mountain towns.</p>
+                    </div>
+                    <div class="storm-phase-visual">
+                      <img src="Assets/mapmiddle.webp" alt="Phase 02 — Mountain Landslides Map" loading="lazy" class="storm-phase-img">
+                    </div>
+                  </div>
+
+                  <div class="storm-phase-row" data-phase="03">
+                    <div class="storm-phase-meta">
+                      <div class="storm-phase-number">03</div>
+                      <div class="storm-phase-rule"></div>
+                      <h3 class="storm-phase-title">Northern Farm Floods</h3>
+                      <p class="storm-phase-desc">As the storm moved north, flash floods washed away fields of crops right before they were ready to be picked.</p>
+                    </div>
+                    <div class="storm-phase-visual">
+                      <img src="Assets/maptop.webp" alt="Phase 03 — Northern Farm Floods Map" loading="lazy" class="storm-phase-img">
+                    </div>
+                  </div>
+
+                  <div class="map-controls" style="margin-top: 60px;">
+                    <button id="openMapBtnDesktop" class="btn-primary">
+                      View Full Map
+                    </button>
+                  </div>
+                </div>
+
+                <div class="editorial-carousel-wrapper mobile-only" style="width: 100%;">
+                    
+                    <div class="text-center" style="margin: 0 auto 24px auto;">
+                        <span class="interaction-hint">Swipe maps to explore phases</span>
+                    </div>
 
                     <div class="editorial-carousel" id="mapCarousel">
+                        
                         <div class="editorial-slide">
                             <div class="slide-img-container">
                                 <img src="Assets/mapbottom.webp" class="visual-asset" alt="Southern Landfall Map" loading="lazy">
                             </div>
                             <div class="editorial-caption">
                                 <div class="caption-left">
-                                    <span class="phase-tag">PHASE 01</span>
+                                    <span class="phase-tag">Phase 01</span>
                                     <h4 class="phase-title">Coastal<br>Flooding</h4>
                                 </div>
                                 <div class="caption-right">
@@ -226,13 +289,14 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="editorial-slide">
                             <div class="slide-img-container">
                                 <img src="Assets/mapmiddle.webp" class="visual-asset" alt="Central Highlands Map" loading="lazy">
                             </div>
                             <div class="editorial-caption">
                                 <div class="caption-left">
-                                    <span class="phase-tag">PHASE 02</span>
+                                    <span class="phase-tag">Phase 02</span>
                                     <h4 class="phase-title">Mountain<br>Landslides</h4>
                                 </div>
                                 <div class="caption-right">
@@ -240,13 +304,14 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="editorial-slide">
                             <div class="slide-img-container">
                                 <img src="Assets/maptop.webp" class="visual-asset" alt="Northern Exit Map" loading="lazy">
                             </div>
                             <div class="editorial-caption">
                                 <div class="caption-left">
-                                    <span class="phase-tag">PHASE 03</span>
+                                    <span class="phase-tag">Phase 03</span>
                                     <h4 class="phase-title">Northern Farm<br>Floods</h4>
                                 </div>
                                 <div class="caption-right">
@@ -254,20 +319,22 @@
                                 </div>
                             </div>
                         </div>
+
                     </div>
                     
-                    <div class="carousel-nav desktop-only">
-                        <button class="nav-arrow prev-arrow" aria-label="Previous Map"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-                        <button class="nav-arrow next-arrow" aria-label="Next Map"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+                    <div class="carousel-dots" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
                     </div>
 
                     <div class="map-controls">
-                        <button id="openMapBtn" class="btn-primary">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                            View Storm Path Map
+                        <button id="openMapBtnMobile" class="btn-primary">
+                            View Full Map
                         </button>
                     </div>
                 </div>
+
             </div>
         </section>
 
@@ -283,12 +350,14 @@
                         <span class="kicker">Tracking the Displaced</span>
                         <h2 class="headline">The Hidden Housing Crisis</h2>
                         <p class="lead">As government shelters closed, families moved in with host families, putting a huge strain on local communities.</p>
-                        <p class="interaction-hint">
-                            <span class="desktop-only">HOVER CHART TO VIEW DETAILS</span>
-                            <span class="mobile-only">TAP CHART TO VIEW DETAILS</span>
-                        </p>
+                        
+                        <span class="interaction-hint">
+                            <span class="desktop-only">Hover chart to view details</span>
+                            <span class="mobile-only">Tap chart to view details</span>
+                        </span>
+
                     </header>
-                    <div class="chart-container full-edge-mobile" id="interaction-area">
+                    <div class="chart-container" id="interaction-area">
                         <div class="legend">
                             <div class="legend-item"><div class="dot dot-red"></div> Government Shelters</div>
                             <div class="legend-item"><div class="dot dot-charcoal"></div> Staying with Families</div>
@@ -319,12 +388,10 @@
                         <h2 class="headline">526,000 Children Out of Class</h2>
                         <p class="lead">Schools across the country shut down either because they were destroyed, or because they were turned into sleeping areas for the homeless.</p>
                         
-                        <p class="interaction-hint">
-                            <span class="desktop-only">HOVER DOTS TO VIEW DETAILS</span>
-                            <span class="mobile-only">SCROLL HORIZONTALLY AND TAP DOTS TO EXPLORE DATA</span>
-                        </p>
-                        <p id="matrix-mobile-hint" class="mobile-only" style="display: none; font-family: var(--font-ui); font-size: 10px; font-weight: 700; color: var(--crimson); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px;">Note: 1 dot = 10 schools</p>
-                        
+                        <span class="interaction-hint">
+                            <span class="desktop-only">Hover dots to view details</span>
+                            <span class="mobile-only">Tap dots to view details</span>
+                        </span>
                     </header>
 
                     <div class="matrix-wrapper">
@@ -347,7 +414,7 @@
                             </div>
                         </div>
 
-                        <div class="viz-container">
+                        <div class="matrix-scroll-wrapper viz-container">
                             <canvas id="matrix-canvas"></canvas>
                         </div>
                         
@@ -364,9 +431,10 @@
                 <h2 class="subhead">Destroyed Crops and Farms</h2>
                 <p>Nearly 20% of the country's ready-to-pick crops were destroyed by the floods. This disaster ruined the livelihoods of about 70,000 small farmers and drove up the price of food in the cities as supplies quickly ran out.</p>
             </div>
-        </section>
+            
+            </section>
 
-        <section class="story-section bg-alt" style="border-top: none;">
+        <section class="story-section bg-alt" style="border-top: none; padding-bottom: 0;">
             <div class="reading-lane fade-up">
                 <h2 class="subhead">Where Did the Aid Money Go?</h2>
                 <p>The UN created a central fund to manage relief money. However, many donors bypassed this system and sent money directly to other groups. Because the money wasn't organized centrally, big gaps were left and many major needs were ignored.</p>
@@ -378,22 +446,24 @@
                         <span class="kicker">Funding the Recovery</span>
                         <h2 class="headline">Aid Stalls in February</h2>
                         <p class="lead">By April 2026, the central aid fund stopped growing. Millions of dollars were still needed, but the money stopped coming in.</p>
-                        <p class="interaction-hint">
-                            <span class="desktop-only">HOVER GRAPHIC TO VIEW DETAILS</span>
-                            <span class="mobile-only">TAP GRAPHIC TO VIEW DETAILS</span>
-                        </p>
+                        
+                        <span class="interaction-hint">
+                            <span class="desktop-only">Hover graphic to view details</span>
+                            <span class="mobile-only">Tap graphic to view details</span>
+                        </span>
+
                     </header>
 
                     <div class="funding-spread">
                         <div class="stage">
-                            <div class="mobile-funding-labels mobile-only">
-                                <div class="m-label-row text-center" style="margin-bottom: 12px;">
+                            <div class="mobile-funding-labels mobile-only" id="mobile-funding-hit-area" style="cursor: pointer; position: relative; z-index: 10; padding: 10px 0;">
+                                <div class="text-center" style="margin-bottom: 12px;">
                                     <span class="m-target">GOAL: $35.3M</span>
                                 </div>
                                 <div class="m-funding-bar-container">
                                     <div class="m-funding-fill" id="m-funding-fill-anim"></div>
                                 </div>
-                                <div class="m-label-row m-flex-spread">
+                                <div class="m-flex-spread">
                                     <span class="m-funding-val">$22.5M Raised</span>
                                     <span class="m-funding-gap">$12.8M Missing</span>
                                 </div>
@@ -454,7 +524,7 @@
                     <div class="closure-box-inner container">
                         <div class="closure-left">
                             <span class="closure-kicker">People Left Behind: April 2026</span>
-                            <div class="closure-num">149,000</div>
+                            <div class="closure-num" id="final-homeless-count">149,000</div>
                         </div>
                         <div class="closure-context">
                             <p class="closure-title">Still Without a Home</p>
@@ -465,10 +535,10 @@
             </div>
         </section>
 
-        <section class="story-section mb-large mt-large">
-            <div class="reading-lane fade-up text-center">
-                <h2 class="subhead">Final Thoughts: A Stalled Recovery</h2>
-                <p>The storm has passed, but the damage remains. With broken roads, destroyed farms, and families still without homes, the recovery effort has slowed to a halt, leaving many to fend for themselves.</p>
+        <section id="final-thoughts-section" class="story-section">
+            <div class="reading-lane fade-up">
+                <h2 class="subhead">A Recovery That Stalled</h2>
+                <p>The storm is gone. The damage is not. Roads are still broken. Farms are still empty. Nearly 149,000 people are still living in borrowed rooms and crowded halls. The aid money dried up before the job was finished — and without a clear plan to rebuild, many families are left waiting for a recovery that may never fully come.</p>
             </div>
         </section>
 
@@ -492,28 +562,28 @@
     <footer class="site-footer fade-up">
         <div class="container footer-grid">
             <div class="footer-left">
-                <h3 class="footer-logo">THE ISLAND SUBMERGED</h3>
+                <h3 class="footer-logo">How a Single Storm Broke Sri Lanka</h3>
                 <p class="footer-summary">A look at how Cyclone Ditwah broke Sri Lanka's roads, homes, and recovery plans.</p>
             </div>
             <div class="footer-right">
                 <div class="meta-section">
                     <span class="meta-label">For more information</span>
-                    <p class="meta-content author-name">consultchatura@gmail.com</p>
+                    <p class="meta-content author-name"><a href="mailto:consultchatura@gmail.com" class="footer-link">consultchatura@gmail.com</a></p>
                 </div>
                 <div class="credits-lane">
                     <div class="credit-box">
                         <span class="meta-label">Design & Data Analysis</span>
-                        <p class="meta-content author-name"><a href="https://www.linkedin.com/in/chaturadissanayake/" target="_blank" style="color: inherit; text-decoration: none;">Chatura Dissanayake</a></p>
+                        <p class="meta-content author-name"><a href="https://www.linkedin.com/in/chaturadissanayake/" target="_blank" class="footer-link">Chatura Dissanayake</a></p>
                     </div>
                     <div class="credit-box">
                         <span class="meta-label">Editing</span>
-                        <p class="meta-content author-name"><a href="https://www.linkedin.com/in/imalinillekumbura/" target="_blank" style="color: inherit; text-decoration: none;">Imali Nillekumbura</a></p>
+                        <p class="meta-content author-name"><a href="https://www.linkedin.com/in/imalinillekumbura/" target="_blank" class="footer-link">Imali Nillekumbura</a></p>
                     </div>
                 </div>
             </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2026. All rights reserved. Data verified as of March 26, 2026.</p>
+            <p>&copy; 2026 Chatura Dissanayake. All rights reserved. | Data verified as of March 26, 2026.</p>
         </div>
     </footer>
 
@@ -528,29 +598,46 @@
                 <div class="zoom-hint">Click image to zoom in/out</div>
             </div>
             <div class="modal-sidebar">
+                <div class="drag-handle-pill"></div>
                 <div class="sidebar-title-row">
                     <h4 class="sidebar-title">Timeline of Destruction</h4>
-                    <button class="toggle-minimization" id="minimizationToggle" aria-label="Minimize list">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="chevron-icon"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    </button>
                 </div>
                 <div class="sidebar-content-wrapper" id="minimizableContent">
+                    
                     <div class="sidebar-item">
-                        <span class="phase-tag">Phase 01: Coastal Floods</span>
-                        <p>Huge waves crashed over the coast, completely covering main roads and bridges.</p>
+                        <span class="phase-kicker">Phase 01</span>
+                        <h5 class="phase-title">Coastal Flooding</h5>
+                        <p>Waves buried the coast. Roads and bridges went under within an hour.</p>
+                        <div class="impact-tag">4 HOURS — Time before the main coastal road became impassable</div>
                     </div>
+                    
                     <div class="sidebar-item">
-                        <span class="phase-tag">Phase 02: Mountain Landslides</span>
-                        <p>The storm poured rain until the mountains gave way, trapping inland towns.</p>
+                        <span class="phase-kicker">Phase 02</span>
+                        <h5 class="phase-title">Mountain Landslides</h5>
+                        <p>Relentless rain broke the highlands apart. Mountain towns were completely sealed off.</p>
+                        <div class="impact-tag">23 villages — cut off with zero road access</div>
                     </div>
+                    
                     <div class="sidebar-item">
-                        <span class="phase-tag">Phase 03: Northern Farm Floods</span>
-                        <p>Flash floods washed away fields of crops right before they were picked.</p>
+                        <span class="phase-kicker">Phase 03</span>
+                        <h5 class="phase-title">Northern Farm Floods</h5>
+                        <p>The storm pushed north and erased entire crop fields — days before harvest.</p>
+                        <div class="impact-tag">$340M — estimated damage to crops and farms overnight</div>
                     </div>
+
                 </div>
             </div>
         </div>
     </div>
+
+    <div id="mobile-tap-sheet" class="mobile-tap-sheet" role="dialog" aria-modal="true">
+      <div class="tap-sheet-handle-bar"></div>
+      <div id="mobile-tap-sheet-content" class="tap-sheet-content"></div>
+      <button class="tap-sheet-close" id="tapSheetClose" aria-label="Close detail">
+        Close
+      </button>
+    </div>
+    <div id="mobile-tap-overlay" class="mobile-tap-overlay"></div>
 
     <button id="backToTop" class="back-to-top" aria-label="Back to top"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
 
