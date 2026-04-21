@@ -252,18 +252,26 @@ document.addEventListener("DOMContentLoaded", () => {
         siteTooltip.style.visibility = 'hidden';
         siteTooltip.classList.remove('active-mobile-tooltip');
         document.querySelectorAll('.data-group, .viz-container canvas').forEach(el => el.classList.remove('active-touch'));
+        window.dispatchEvent(new CustomEvent('clearCharts'));
     };
 
     siteTooltip.addEventListener('click', (e) => {
         if (e.target.closest('.close-tooltip')) dismissTooltip();
     });
 
+    // Global touch listener to dismiss tooltips and clear active states when tapping outside
     document.addEventListener('touchstart', (e) => {
         const isTooltipOpen = siteTooltip.classList.contains('active-mobile-tooltip');
         const tappedInsideTooltip = e.target.closest('#site-tooltip');
-        const tappedInsideChart = e.target.closest('#sect-infra, #sect-matrix, #interaction-area');
+        const tappedInsideChart = e.target.closest('#sect-infra, #sect-matrix, #interaction-area, .funding-spread, #canvas-day1, #canvas-month3');
+        
         if (isTooltipOpen && !tappedInsideTooltip && !tappedInsideChart) {
             dismissTooltip();
+        }
+        
+        if (!tappedInsideChart) {
+            document.querySelectorAll('.data-group, .viz-container canvas').forEach(el => el.classList.remove('active-touch'));
+            window.dispatchEvent(new CustomEvent('clearCharts'));
         }
     });
 
@@ -629,6 +637,14 @@ document.addEventListener("DOMContentLoaded", () => {
         canvas.addEventListener('mousemove', (e) => { if (!isMobile()) handleCanvasInteraction(e.clientX, e.clientY); });
         canvas.addEventListener('click', (e) => { if (isMobile()) handleCanvasInteraction(e.clientX, e.clientY); });
         canvas.addEventListener('mouseleave', () => { if (!isMobile()) { ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden'; } });
+        
+        window.addEventListener('clearCharts', () => {
+            if (ui.activeCat !== null) {
+                ui.activeCat = null;
+                render();
+            }
+        });
+        
         window.addEventListener('resize', init);
         init();
     })();
@@ -639,12 +655,13 @@ document.addEventListener("DOMContentLoaded", () => {
     (() => {
         const hpp = document.getElementById('hpp-vessel');
         const shadow = document.getElementById('shadow-flow');
+        const mFunding = document.querySelector('.mobile-funding-labels');
 
         const updateFundingTooltip = (clientX, clientY, type) => {
             if (type === 'vessel' && hpp) {
                 const rect = hpp.getBoundingClientRect();
                 const pct = 100 - ((clientY - rect.top) / rect.height * 100);
-                if (pct > 63.7) {
+                if (pct > 63.7 || isMobile()) {
                     siteTooltip.innerHTML = `
                         <button class="close-tooltip">✕</button>
                         <div class="tt-title">Missing Aid Money</div>
@@ -683,6 +700,11 @@ document.addEventListener("DOMContentLoaded", () => {
             shadow.onmousemove = (e) => { if (!isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'shadow'); };
             shadow.addEventListener('click', (e) => { if (isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'shadow'); });
             shadow.onmouseleave = () => { if (!isMobile()) siteTooltip.style.visibility = 'hidden'; };
+        }
+        if (mFunding) {
+            mFunding.addEventListener('click', (e) => { 
+                if (isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'vessel'); 
+            });
         }
 
         let animated = false;
@@ -755,6 +777,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 PATH_DETAILS.forEach(d => detailPaths2D.push(new Path2D(d)));
                 calculatePositions();
                 renderStaticBuffer();
+                
+                window.addEventListener('clearCharts', () => {
+                    if (activeHoverId !== null) {
+                        activeHoverId = null;
+                        p.redraw();
+                    }
+                });
+
                 setTimeout(() => { p.windowResized(); }, 50);
             };
 
