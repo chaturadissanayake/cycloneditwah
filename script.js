@@ -1,9 +1,77 @@
 document.addEventListener("DOMContentLoaded", () => {
     gsap.registerPlugin(ScrollTrigger);
 
-    window.addEventListener("resize", () => { ScrollTrigger.refresh(); });
+    // Global Debounce Utility
+    const debounce = (func, wait) => {
+        let timeout;
+        return function(...args) {
+            const later = () => { clearTimeout(timeout); func.apply(this, args); };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    };
+
+    window.addEventListener("resize", debounce(() => { ScrollTrigger.refresh(); }, 250));
 
     const isMobile = () => window.innerWidth <= 768;
+
+    // =========================================
+    // 0. DESKTOP BANNER
+    // =========================================
+    const banner = document.getElementById('desktop-warning-banner');
+    const dismissBtn = document.getElementById('dismiss-banner');
+    let isBannerDismissed = false;
+    
+    const checkBannerVisibility = () => {
+        if (banner && dismissBtn && !isBannerDismissed) {
+            if (window.innerWidth < 1024) { 
+                banner.style.display = 'flex';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+    };
+    checkBannerVisibility();
+    window.addEventListener('resize', debounce(checkBannerVisibility, 150));
+
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', () => {
+            isBannerDismissed = true;
+            if (banner) banner.style.display = 'none';
+        });
+    }
+
+    // =========================================
+    // HERO RAIN P5 SKETCH
+    // =========================================
+    const heroSketch = (p) => {
+        let lines = [];
+        p.setup = () => {
+            let canvas = p.createCanvas(window.innerWidth, window.innerHeight);
+            canvas.parent('hero-canvas');
+            for(let i=0; i<45; i++) {
+                lines.push({x: p.random(p.width), y: p.random(p.height), speed: p.random(3, 7), len: p.random(15, 35)});
+            }
+        };
+        p.draw = () => {
+            p.clear();
+            p.stroke('rgba(19,17,16,0.06)');
+            p.strokeWeight(1);
+            lines.forEach(l => {
+                p.line(l.x, l.y, l.x + l.len*0.15, l.y + l.len);
+                l.y += l.speed;
+                l.x += l.speed*0.15;
+                if(l.y > p.height) { l.y = -l.len; l.x = p.random(p.width); }
+            });
+        };
+        p.windowResized = () => p.resizeCanvas(window.innerWidth, window.innerHeight);
+    };
+    let heroP5 = new p5(heroSketch);
+    ScrollTrigger.create({
+        trigger: '.hero',
+        start: 'bottom top',
+        onLeave: () => { if(heroP5) { heroP5.remove(); heroP5 = null; } }
+    });
 
     // =========================================
     // 1. READING PROGRESS BAR
@@ -15,10 +83,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (progressBar) {
             progressBar.style.width = (winScroll / height) * 100 + "%";
         }
-    });
+    }, { passive: true });
 
     // =========================================
-    // 2. STAGGERED METRICS COUNTER
+    // 2. STAGGERED METRICS & FINAL COUNT-UP
     // =========================================
     const metricsContainerIntro = document.getElementById("metrics-container-intro");
     if (metricsContainerIntro) {
@@ -27,36 +95,45 @@ document.addEventListener("DOMContentLoaded", () => {
             start: "top 85%", 
             once: true,
             onEnter: () => {
-                gsap.to(".metric-item-intro", {
-                    y: 0,
-                    opacity: 1,
-                    duration: 0.8,
-                    stagger: 0.15,
-                    ease: "power2.out"
-                });
+                gsap.to(".metric-item-intro", { y: 0, opacity: 1, duration: 0.8, stagger: 0.15, ease: "power2.out" });
                 metricsContainerIntro.querySelectorAll('.counter').forEach(el => {
                     const target = parseFloat(el.getAttribute('data-target'));
                     const floatCheck = target % 1 !== 0;
                     let proxy = { val: 0 };
                     gsap.to(proxy, {
-                        val: target,
-                        duration: 2.2,
-                        delay: 0.2,
-                        ease: "power2.out",
-                        onUpdate: function() {
-                            el.innerText = floatCheck
-                                ? proxy.val.toFixed(1)
-                                : Math.floor(proxy.val).toLocaleString();
-                        }
+                        val: target, duration: 2.2, delay: 0.2, ease: "power2.out",
+                        onUpdate: function() { el.innerText = floatCheck ? proxy.val.toFixed(1) : Math.floor(proxy.val).toLocaleString(); }
                     });
                 });
             }
         });
     }
 
+    // GSAP innerHTML Deprecation Fix using Proxy
+    const finalCountEl = document.getElementById("final-homeless-count");
+    if (finalCountEl) {
+        let countProxy = { val: 0 };
+        gsap.to(countProxy, {
+            val: 149000, 
+            duration: 3, 
+            ease: "power2.out", 
+            scrollTrigger: { trigger: ".closure-box", start: "top 80%" },
+            onUpdate: function() { 
+                finalCountEl.innerText = Math.round(countProxy.val).toLocaleString(); 
+            }
+        });
+    }
+
     // =========================================
-    // 3. COMPARISON SLIDER
+    // 3. COMPARISON SLIDER & PARALLAX
     // =========================================
+    if (!isMobile()) {
+        gsap.to('.storm-phase-img', {
+            yPercent: -8, ease: 'none',
+            scrollTrigger: { trigger: '.storm-phases-wrapper', start: 'top bottom', end: 'bottom top', scrub: true }
+        });
+    }
+
     const slider = document.getElementById('comparison-slider');
     const handle = document.getElementById('handle');
     const beforeLayer = document.getElementById('before-layer');
@@ -84,70 +161,80 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================
-    // 4. MAP CAROUSEL
+    // 4. MAP MODAL LIGHTBOX & CAROUSEL
     // =========================================
     const mapCarousel = document.getElementById('mapCarousel');
-    const prevBtn = document.querySelector('.prev-arrow');
-    const nextBtn = document.querySelector('.next-arrow');
-
-    if (mapCarousel && prevBtn && nextBtn) {
-        nextBtn.addEventListener('click', () => { mapCarousel.scrollBy({ left: mapCarousel.clientWidth, behavior: 'smooth' }); });
-        prevBtn.addEventListener('click', () => { mapCarousel.scrollBy({ left: -mapCarousel.clientWidth, behavior: 'smooth' }); });
+    const dots = document.querySelectorAll('.carousel-dots .dot');
+    if (mapCarousel && dots.length > 0) {
+        mapCarousel.addEventListener('scroll', () => {
+            const index = Math.round(mapCarousel.scrollLeft / mapCarousel.clientWidth);
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+        }, { passive: true });
     }
 
-    // =========================================
-    // 5. MAP MODAL LIGHTBOX
-    // =========================================
     const modal = document.getElementById("mapModal");
-    const mapBtn = document.getElementById("openMapBtn");
+    const mapBtnDesktop = document.getElementById("openMapBtnDesktop");
+    const mapBtnMobile = document.getElementById("openMapBtnMobile");
     const span = document.getElementsByClassName("close-modal")[0];
     const fullMapImg = document.getElementById("fullMapImg");
     const panContainer = document.getElementById("pan-container");
-    const toggleButton = document.getElementById('minimizationToggle');
     const modalSidebar = document.querySelector('.modal-sidebar');
-    let isModalOpen = false;
+    const dragHandle = document.querySelector('.drag-handle-pill');
+    const sidebarTitleRow = document.querySelector('.sidebar-title-row');
 
     const closeModalLogic = () => {
+        if (!modal) return;
         modal.classList.remove("show");
         fullMapImg.classList.remove("zoomed");
+        
+        document.body.style.paddingRight = '0px';
         document.body.style.overflow = "";
-        isModalOpen = false;
+        const progressCont = document.querySelector('.progress-bar-container');
+        if (progressCont) progressCont.style.paddingRight = '0px';
     };
 
-    if (modal && mapBtn && span && fullMapImg && panContainer && toggleButton && modalSidebar) {
-        mapBtn.onclick = function () {
-            modal.classList.add("show");
-            document.body.style.overflow = "hidden";
-            setTimeout(() => { panContainer.scrollTop = 0; panContainer.scrollLeft = 0; }, 10);
-            isModalOpen = true;
-            if(!window.history.state || !window.history.state.modalOpen) {
-                window.history.pushState({ modalOpen: true }, "");
-            }
-        };
+    // Modal Escape Key Fix
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
+            closeModalLogic();
+        }
+    });
 
-        span.onclick = function () {
-            if (isModalOpen) {
-                if(window.history.state && window.history.state.modalOpen) {
-                    window.history.back(); 
-                } else {
-                    closeModalLogic();
+    const openMapLogic = function () {
+        if (!modal) return;
+        
+        if (!isMobile()) {
+            const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+            document.body.style.paddingRight = scrollbarWidth + 'px';
+            const progressCont = document.querySelector('.progress-bar-container');
+            if (progressCont) progressCont.style.paddingRight = scrollbarWidth + 'px';
+        }
+        
+        document.body.style.overflow = "hidden";
+        modal.classList.add("show");
+        setTimeout(() => { panContainer.scrollTop = 0; panContainer.scrollLeft = 0; }, 10);
+    };
+
+    if (modal && span && fullMapImg && panContainer && modalSidebar) {
+        if (mapBtnDesktop) mapBtnDesktop.onclick = openMapLogic;
+        if (mapBtnMobile) mapBtnMobile.onclick = openMapLogic;
+        span.onclick = closeModalLogic;
+
+        // Mobile Swipe & Tap Support for Sidebar
+        if(sidebarTitleRow) {
+            sidebarTitleRow.addEventListener('click', () => modalSidebar.classList.toggle('expanded'));
+            
+            let startY = 0;
+            sidebarTitleRow.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, {passive: true});
+            sidebarTitleRow.addEventListener('touchend', (e) => {
+                let endY = e.changedTouches[0].clientY;
+                if (startY - endY > 20) { 
+                    modalSidebar.classList.add('expanded'); // Swipe Up
+                } else if (endY - startY > 20) { 
+                    modalSidebar.classList.remove('expanded'); // Swipe Down
                 }
-            } else {
-                closeModalLogic();
-            }
-        };
-
-        toggleButton.onclick = function () {
-            modalSidebar.classList.toggle('minimized-state');
-            const isMinimized = modalSidebar.classList.contains('minimized-state');
-            toggleButton.setAttribute('aria-label', isMinimized ? 'Maximize list' : 'Minimize list');
-        };
-
-        window.addEventListener('popstate', (e) => {
-            if (isModalOpen && (!e.state || !e.state.modalOpen)) {
-                closeModalLogic();
-            }
-        }, false);
+            }, {passive: true});
+        }
 
         fullMapImg.onclick = function () {
             fullMapImg.classList.toggle("zoomed");
@@ -178,121 +265,107 @@ document.addEventListener("DOMContentLoaded", () => {
             isDraggingMap = false;
             fullMapImg.style.cursor = fullMapImg.classList.contains("zoomed") ? 'zoom-out' : 'zoom-in';
         });
+        
+        // Panning Speed Fix (reduced 1.5 to 1.0)
         panContainer.addEventListener('mousemove', (e) => {
             if (!isDraggingMap) return;
             e.preventDefault();
-            panContainer.scrollLeft = scrollLeft - ((e.pageX - panContainer.offsetLeft - startX) * 1.5);
-            panContainer.scrollTop = scrollTop - ((e.pageY - panContainer.offsetTop - startY) * 1.5);
+            panContainer.scrollLeft = scrollLeft - ((e.pageX - panContainer.offsetLeft - startX) * 1.0);
+            panContainer.scrollTop = scrollTop - ((e.pageY - panContainer.offsetTop - startY) * 1.0);
         });
     }
 
     // =========================================
-    // 6. NARRATIVE REVEAL ANIMATIONS
+    // 5. NARRATIVE REVEAL ANIMATIONS
     // =========================================
     const fElements = gsap.utils.toArray('.fade-up');
     fElements.forEach(el => {
         gsap.to(el, {
-            y: 0,
-            opacity: 1,
-            duration: 0.8,
-            ease: "power2.out",
-            scrollTrigger: {
-                trigger: el,
-                start: "top 85%" 
-            }
+            y: 0, opacity: 1, duration: 0.8, ease: "power2.out",
+            scrollTrigger: { trigger: el, start: "top 85%" }
         });
     });
 
     // =========================================
-    // 7. BACK TO TOP
+    // 6. BACK TO TOP
     // =========================================
     const bttBtn = document.getElementById('backToTop');
     if (bttBtn) {
         window.addEventListener('scroll', () => {
             bttBtn.classList.toggle('visible', window.scrollY > 800);
-        });
+        }, { passive: true });
         bttBtn.addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); });
     }
 
     // =========================================
-    // CHARTS: Shared tooltip helper
+    // 7. CHARTS: Shared Tooltip & Mobile Sheet
     // =========================================
     const siteTooltip = document.getElementById('site-tooltip');
-    let mobileTooltipTimeout;
+    const mobileTapSheet = document.getElementById('mobile-tap-sheet');
+    const mobileTapSheetContent = document.getElementById('mobile-tap-sheet-content');
+    const mobileTapOverlay = document.getElementById('mobile-tap-overlay');
+    const tapSheetClose = document.getElementById('tapSheetClose');
 
     function setTooltipPosition(clientX, clientY) {
         siteTooltip.style.visibility = "visible";
-        if (isMobile()) {
-            siteTooltip.classList.add('active-mobile-tooltip');
-            return; 
-        }
-        siteTooltip.classList.remove('active-mobile-tooltip');
         let x = clientX + 16;
         let y = clientY + 16;
         const ttRect = siteTooltip.getBoundingClientRect();
-        if (x + ttRect.width > window.innerWidth - 8) {
-            x = clientX - ttRect.width - 16;
-        }
-        if (y + ttRect.height > window.innerHeight - 8) {
-            y = clientY - ttRect.height - 16;
-        }
+        if (x + ttRect.width > window.innerWidth - 8) { x = clientX - ttRect.width - 16; }
+        if (y + ttRect.height > window.innerHeight - 8) { y = clientY - ttRect.height - 16; }
         siteTooltip.style.left = x + "px";
         siteTooltip.style.top = y + "px";
     }
 
-    const triggerMobileTooltip = (clientX, clientY) => {
-        setTooltipPosition(clientX, clientY);
-        clearTimeout(mobileTooltipTimeout);
-        mobileTooltipTimeout = setTimeout(() => {
-            dismissTooltip();
-        }, 3500);
+    function openMobileTapSheet(htmlContent) {
+        mobileTapSheetContent.innerHTML = htmlContent;
+        mobileTapSheet.classList.add('is-open');
+        mobileTapOverlay.classList.add('is-open');
+    }
+
+    function closeMobileSheet() {
+        mobileTapSheet.classList.remove('is-open');
+        mobileTapOverlay.classList.remove('is-open');
+        document.querySelectorAll('.data-group, .viz-container canvas').forEach(el => el.classList.remove('active-touch'));
+        window.dispatchEvent(new CustomEvent('clearCharts'));
+    }
+
+    if (tapSheetClose && mobileTapOverlay) {
+        tapSheetClose.addEventListener('click', closeMobileSheet);
+        mobileTapOverlay.addEventListener('click', closeMobileSheet);
     }
 
     const dismissTooltip = () => {
         siteTooltip.style.visibility = 'hidden';
-        siteTooltip.classList.remove('active-mobile-tooltip');
         document.querySelectorAll('.data-group, .viz-container canvas').forEach(el => el.classList.remove('active-touch'));
         window.dispatchEvent(new CustomEvent('clearCharts'));
     };
 
-    siteTooltip.addEventListener('click', (e) => {
-        if (e.target.closest('.close-tooltip')) dismissTooltip();
-    });
-
-    // Global touch listener to dismiss tooltips and clear active states when tapping outside
-    document.addEventListener('touchstart', (e) => {
-        const isTooltipOpen = siteTooltip.classList.contains('active-mobile-tooltip');
+    document.addEventListener('click', (e) => {
+        const isTooltipOpen = siteTooltip.style.visibility === 'visible';
         const tappedInsideTooltip = e.target.closest('#site-tooltip');
         const tappedInsideChart = e.target.closest('#sect-infra, #sect-matrix, #interaction-area, .funding-spread, #canvas-day1, #canvas-month3');
+        const tappedInsideSheet = e.target.closest('.mobile-tap-sheet');
         
-        if (isTooltipOpen && !tappedInsideTooltip && !tappedInsideChart) {
+        if (!isMobile() && isTooltipOpen && !tappedInsideTooltip && !tappedInsideChart) {
             dismissTooltip();
         }
         
-        if (!tappedInsideChart) {
+        if (isMobile() && !tappedInsideChart && !tappedInsideSheet && !e.target.closest('#tapSheetClose') && !e.target.closest('#mobile-tap-overlay')) {
             document.querySelectorAll('.data-group, .viz-container canvas').forEach(el => el.classList.remove('active-touch'));
             window.dispatchEvent(new CustomEvent('clearCharts'));
         }
-    });
-
-    if (!siteTooltip.querySelector('.close-tooltip')) {
-        const closeBtn = document.createElement('button');
-        closeBtn.className = 'close-tooltip';
-        closeBtn.innerText = '✕';
-        closeBtn.setAttribute('aria-label', 'Dismiss details');
-        siteTooltip.appendChild(closeBtn);
-    }
-
+    }, {passive: true});
 
     // =========================================
     // CHART 1: ECONOMIC INFRASTRUCTURE BREAKDOWN
     // =========================================
     (() => {
         const data = [
-            { label: "Roads & Water",  val: 1735000000, share: "42%", detail: "Roads, bridges, and water networks." },
-            { label: "Homes",          val:  985000000, share: "24%", detail: "Houses and lost belongings." },
-            { label: "Farming",        val:  814000000, share: "20%", detail: "Crops, livestock, and fishing gear." },
-            { label: "Buildings",      val:  566000000, share: "14%", detail: "Schools, hospitals, and factories." }
+            { label: "Roads & Water",  val: 1735000000, share: "42%", detail: "Roads, bridges, and water networks.", color: "var(--ink)" },
+            { label: "Homes",          val:  985000000, share: "24%", detail: "Houses and lost belongings.", color: "var(--ink)" },
+            { label: "Farming",        val:  814000000, share: "20%", detail: "Crops, livestock, and fishing gear.", color: "var(--ink)" },
+            { label: "Buildings",      val:  566000000, share: "14%", detail: "Schools, hospitals, and factories.", color: "var(--ink)" }
         ];
         const svg = document.getElementById('reuters-chart');
         if (!svg || !siteTooltip) return;
@@ -322,16 +395,17 @@ document.addEventListener("DOMContentLoaded", () => {
             group.setAttribute("class", "data-group");
 
             const updateTT = (clientX, clientY) => {
-                siteTooltip.innerHTML = `
-                    <button class="close-tooltip">✕</button>
+                const contentHtml = `
                     <div class="tt-title">Economic Damage · ${d.label}</div>
-                    <div class="tt-val-large tt-val-red">$${(d.val / 1e9).toFixed(2)} Billion</div>
+                    <div class="tt-val-large" style="color: var(--crimson);">$${(d.val / 1e9).toFixed(2)} Billion</div>
                     <div class="tt-desc" style="font-weight:700; margin-bottom:6px;">${d.share} of total damage</div>
-                    <div class="tt-desc" style="border-top:1px solid var(--smoke); padding-top:8px;">${d.detail}</div>
+                    <div class="tt-desc" style="border-top:1px solid rgba(19, 17, 16, 0.1); padding-top:8px;">${d.detail}</div>
                 `;
+
                 if(isMobile()) {
-                    triggerMobileTooltip(clientX, clientY);
+                    openMobileTapSheet(contentHtml);
                 } else {
+                    siteTooltip.innerHTML = contentHtml;
                     setTooltipPosition(clientX, clientY);
                 }
                 group.classList.add('active-touch');
@@ -363,7 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const hitArea = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             hitArea.setAttribute("x", 0); hitArea.setAttribute("y", y - 25);
             hitArea.setAttribute("width", width); hitArea.setAttribute("height", 50);
-            hitArea.setAttribute("fill", "transparent"); hitArea.setAttribute("style", "pointer-events: all;");
+            hitArea.setAttribute("fill", "transparent"); hitArea.setAttribute("style", "pointer-events: all; cursor: pointer;");
             group.appendChild(hitArea);
 
             const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
@@ -373,18 +447,11 @@ document.addEventListener("DOMContentLoaded", () => {
             svg.appendChild(group);
         });
 
-        // Trigger on the section to prevent early firing
         ScrollTrigger.create({
-            trigger: "#sect-infra",
-            start: "top 65%",
-            once: true,
+            trigger: "#sect-infra", start: "top 65%", once: true,
             onEnter: () => {
-                svg.querySelectorAll('.stem').forEach(el => {
-                    gsap.to(el, { attr: { x2: el.getAttribute('data-target-x') }, duration: 1.5, ease: "power2.out" });
-                });
-                svg.querySelectorAll('.head').forEach(el => {
-                    gsap.to(el, { attr: { cx: el.getAttribute('data-target-cx') }, duration: 1.5, ease: "power2.out" });
-                });
+                svg.querySelectorAll('.stem').forEach(el => { gsap.to(el, { attr: { x2: el.getAttribute('data-target-x') }, duration: 1.5, ease: "power2.out" }); });
+                svg.querySelectorAll('.head').forEach(el => { gsap.to(el, { attr: { cx: el.getAttribute('data-target-cx') }, duration: 1.5, ease: "power2.out" }); });
             }
         });
     })();
@@ -473,10 +540,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 const d = data[i]; const x = getX(i);
                 tracker.setAttribute('x1', x); tracker.setAttribute('x2', x);
                 tracker.style.visibility = "visible";
-                siteTooltip.innerHTML = `
-                    <button class="close-tooltip">✕</button>
+
+                const contentHtml = `
                     <div class="tt-title">People Displaced · ${d.d.toUpperCase()}</div>
-                    <div class="tt-val-large">${(d.sc + d.hf).toLocaleString()}</div>
+                    <div class="tt-val-large" style="color: var(--ink);">${(d.sc + d.hf).toLocaleString()}</div>
                     <div class="tt-flex" style="margin-top:10px;">
                         <span><span style="color:var(--crimson)">●</span> Govt Shelters:</span>
                         <span style="font-weight:700">${d.sc.toLocaleString()}</span>
@@ -486,10 +553,11 @@ document.addEventListener("DOMContentLoaded", () => {
                         <span style="font-weight:700">${d.hf.toLocaleString()}</span>
                     </div>
                 `;
-                
+
                 if(isMobile()) {
-                    triggerMobileTooltip(clientX, clientY);
+                    openMobileTapSheet(contentHtml);
                 } else {
+                    siteTooltip.innerHTML = contentHtml;
                     setTooltipPosition(clientX, clientY);
                 }
             }
@@ -504,6 +572,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 tracker.style.visibility = "hidden";
             }
         };
+        
+        window.addEventListener('clearCharts', () => { tracker.style.visibility = "hidden"; });
     })();
 
     // =========================================
@@ -516,47 +586,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const baseSchools = { total: 10076, damaged: 1339, shelters: 500, closed: 147, functioning: 8090 };
         let schools = { ...baseSchools };
-        const ui = { cols: 140, gap: 3, radius: 4, activeCat: null };
+        const ui = { gap: 3, radius: 4, activeCat: null };
 
-        const colors = {
-            damaged: '191, 45, 38',
-            shelter: '19, 17, 16',
-            closed:  '140, 124, 105',
-            open:    '122, 158, 184'   
-        };
+        const colors = { damaged: '191, 45, 38', shelter: '19, 17, 16', closed:  '140, 124, 105', open: '122, 158, 184' };
 
         function init() {
             const dpr = window.devicePixelRatio || 1;
             const mob = isMobile();
             
+            // Allow container to stretch naturally to available width
+            const matrixWrapper = document.querySelector('#sect-matrix .viz-container');
+            const containerWidth = matrixWrapper ? matrixWrapper.clientWidth : (mob ? window.innerWidth - 40 : 1100);
+
             if (mob) {
                 schools.damaged = Math.ceil(baseSchools.damaged / 10);
                 schools.shelters = Math.ceil(baseSchools.shelters / 10);
                 schools.closed = Math.ceil(baseSchools.closed / 10);
                 schools.functioning = Math.ceil(baseSchools.functioning / 10);
                 schools.total = schools.damaged + schools.shelters + schools.closed + schools.functioning;
-                ui.cols = 35; 
-                ui.radius = 5;
-                ui.gap = 4;
+                ui.radius = 5; ui.gap = 4;
             } else {
                 schools = { ...baseSchools };
-                ui.cols = 140;
-                ui.radius = 4;
-                ui.gap = 3;
+                ui.radius = 4; ui.gap = 3;
             }
 
-            const hintEl = document.getElementById('matrix-mobile-hint');
-            if (hintEl) hintEl.style.display = mob ? 'block' : 'none';
+            const cellSizeLocal = ui.radius + ui.gap;
+            
+            // Dynamically calculate column count to perfectly fit the screen width edge-to-edge
+            ui.cols = Math.max(10, Math.floor(containerWidth / cellSizeLocal));
 
-            const internalWidth = ui.cols * (ui.radius + ui.gap);
-            const internalHeight = Math.ceil(schools.total / ui.cols) * (ui.radius + ui.gap);
+            const internalWidth = ui.cols * cellSizeLocal;
+            const internalHeight = Math.ceil(schools.total / ui.cols) * cellSizeLocal;
             
             canvas.width = internalWidth * dpr;
             canvas.height = internalHeight * dpr;
-            canvas.style.width = mob ? '100%' : internalWidth + 'px'; 
-            canvas.style.maxWidth = internalWidth + 'px';
-            canvas.style.height = 'auto';
-            canvas.style.margin = '0 auto';
+            
+            canvas.style.width = internalWidth + 'px'; 
+            canvas.style.height = internalHeight + 'px'; 
             
             ctx.setTransform(1, 0, 0, 1, 0, 0); 
             ctx.scale(dpr, dpr);
@@ -604,32 +670,28 @@ document.addEventListener("DOMContentLoaded", () => {
                 const content = {
                     damaged: ["Damaged Buildings", "Schools structurally ruined during the storm.", "1,339", "var(--crimson)"],
                     shelter: ["Used as Shelters", "Schools turned into camps for homeless families.", "500", "var(--ink)"],
-                    closed:  ["Blocked Roads", "Schools kept shut because teachers and students couldn't safely travel there.", "147", "var(--dust)"],
-                    open:    ["Open but Struggling", "Schools technically running, but often missing students and supplies.", "8,090", "var(--azure)"]
+                    closed:  ["Roads Blocked", "Schools kept shut because roads were unsafe.", "147", "var(--dust)"],
+                    open:    ["Open but Struggling", "Schools technically running, but missing supplies.", "8,090", "var(--open-blue)"]
                 };
                 
-                siteTooltip.innerHTML = `
-                    <button class="close-tooltip">✕</button>
+                const contentHtml = `
                     <div class="tt-title">Education System · ${content[cat][0]}</div>
-                    <div class="tt-val-large" style="color:${content[cat][3]}">${content[cat][2]}</div>
+                    <div class="tt-val-large" style="color: ${content[cat][3]};">${content[cat][2]}</div>
                     <div class="tt-desc">${content[cat][1]}</div>
                 `;
                 
                 if(isMobile()) {
-                    triggerMobileTooltip(clientX, clientY);
+                    openMobileTapSheet(contentHtml);
                     canvas.classList.add('active-touch');
                 } else {
+                    siteTooltip.innerHTML = contentHtml;
                     setTooltipPosition(clientX, clientY);
                 }
                 
             } else {
                 if (ui.activeCat !== null) { 
-                    ui.activeCat = null; 
-                    render(); 
-                    if (!isMobile()) {
-                        siteTooltip.style.visibility = 'hidden'; 
-                        canvas.classList.remove('active-touch');
-                    }
+                    ui.activeCat = null; render(); 
+                    if (!isMobile()) { siteTooltip.style.visibility = 'hidden'; canvas.classList.remove('active-touch'); }
                 }
             }
         };
@@ -638,15 +700,11 @@ document.addEventListener("DOMContentLoaded", () => {
         canvas.addEventListener('click', (e) => { if (isMobile()) handleCanvasInteraction(e.clientX, e.clientY); });
         canvas.addEventListener('mouseleave', () => { if (!isMobile()) { ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden'; } });
         
-        window.addEventListener('clearCharts', () => {
-            if (ui.activeCat !== null) {
-                ui.activeCat = null;
-                render();
-            }
-        });
+        window.addEventListener('clearCharts', () => { if (ui.activeCat !== null) { ui.activeCat = null; render(); } });
+        window.addEventListener('resize', debounce(init, 250));
         
-        window.addEventListener('resize', init);
-        init();
+        // Wait to allow container CSS to compute actual screen size perfectly before painting
+        setTimeout(init, 100);
     })();
 
     // =========================================
@@ -655,38 +713,45 @@ document.addEventListener("DOMContentLoaded", () => {
     (() => {
         const hpp = document.getElementById('hpp-vessel');
         const shadow = document.getElementById('shadow-flow');
-        const mFunding = document.querySelector('.mobile-funding-labels');
+        const mFunding = document.getElementById('mobile-funding-hit-area');
 
         const updateFundingTooltip = (clientX, clientY, type) => {
+            let contentHtml = '';
+            
             if (type === 'vessel' && hpp) {
                 const rect = hpp.getBoundingClientRect();
                 const pct = 100 - ((clientY - rect.top) / rect.height * 100);
                 if (pct > 63.7 || isMobile()) {
-                    siteTooltip.innerHTML = `
-                        <button class="close-tooltip">✕</button>
-                        <div class="tt-title">Missing Aid Money</div>
-                        <div class="tt-val-large tt-val-red">$12.8M Missing</div>
-                        <p class="tt-desc">The official recovery fund stalled out at just 63.7% of its $35.3M goal.</p>
+                    contentHtml = `
+                        <div class="tt-title">FUNDING STATUS · APRIL 2026</div>
+                        <div class="tt-val-large" style="color:var(--ink);">$22.5M Raised</div>
+                        <div class="tt-desc" style="margin-top: 8px;">
+                            <strong style="color:var(--ink)">$35.3M</strong> Total Goal<br>
+                            <span class="tt-val-red"><strong>$12.8M</strong> Still Needed</span>
+                        </div>
+                        <div class="tt-desc" style="margin-top: 12px; border-top: 1px solid rgba(19, 17, 16, 0.1); padding-top: 12px;">
+                            Aid froze in February — the fund grew by less than $100K in its final two months.
+                        </div>
                     `;
                 } else {
-                    siteTooltip.innerHTML = `
-                        <button class="close-tooltip">✕</button>
+                    contentHtml = `
                         <div class="tt-title">Official Aid Money</div>
-                        <div class="tt-val-large">$22.5M Raised</div>
+                        <div class="tt-val-large" style="color:var(--ink);">$22.5M Raised</div>
                         <p class="tt-desc">Money officially tracked and delivered to emergency sites.</p>
                     `;
                 }
             } else if (shadow) {
-                siteTooltip.innerHTML = `
-                    <button class="close-tooltip">✕</button>
+                contentHtml = `
                     <div class="tt-title">Outside Money</div>
                     <div class="tt-val-large" style="color:var(--dust)">Uncoordinated Cash</div>
                     <p class="tt-desc">Private donations and unorganized money that skipped the main recovery plan.</p>
                 `;
             }
+            
             if(isMobile()) {
-                triggerMobileTooltip(clientX, clientY);
+                openMobileTapSheet(contentHtml);
             } else {
+                siteTooltip.innerHTML = contentHtml;
                 setTooltipPosition(clientX, clientY);
             }
         };
@@ -702,9 +767,7 @@ document.addEventListener("DOMContentLoaded", () => {
             shadow.onmouseleave = () => { if (!isMobile()) siteTooltip.style.visibility = 'hidden'; };
         }
         if (mFunding) {
-            mFunding.addEventListener('click', (e) => { 
-                if (isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'vessel'); 
-            });
+            mFunding.addEventListener('click', (e) => { if (isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'vessel'); });
         }
 
         let animated = false;
@@ -738,17 +801,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     );
                 }
             });
-        }, {
-            threshold: 0.3,   
-            rootMargin: '0px 0px -5% 0px'
-        });
+        }, { threshold: 0.3, rootMargin: '0px 0px -5% 0px' });
 
         if (vesselTrigger) observer.observe(vesselTrigger);
     })();
 
-
     // =========================================
-    // SPIRAL VISUALIZATIONS
+    // SPIRAL VISUALIZATIONS (Optimized Loop)
     // =========================================
     const PATH_SHELL = "M67.92,1.63c.39-.96,1.79-.78,1.92.24.89,6.91,2.28,15.58,4.53,25.45.99,4.35,4.66,19.9,12.5,40.17,2.2,5.69,5.91,13.96,13.33,30.5,7.83,17.46,10.07,21.8,13.83,31.83,4.55,12.11,6.84,18.35,8,27.33.81,6.26,1.93,15.65-1,27.33-3.38,13.48-10.21,22.34-12.83,25.5-3.2,3.86-8.17,9.76-16.67,14.17-8,4.15-15.23,4.95-24.67,6-5.26.58-10.27,1.14-16.83.5-4.2-.41-14.54-1.42-24.17-7.33-15.51-9.52-20.33-26.34-22.33-33.33-3.69-12.87-2.62-23.22-1.33-34.5,1.9-16.66,6.37-28.11,14.17-47.83,3.16-7.99,10.39-25.52,21.83-46.83,7.44-13.86,11-18.76,18.17-33.33,5.04-10.24,8.86-19.16,11.55-25.85Z";
     const PATH_DETAILS = [
@@ -763,12 +822,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const createSpiralSketch = (containerId, configData, settings, titlePrefix) => {
         return (p) => {
-            let shellPath2D;
-            let detailPaths2D = [];
-            let dropPositions = [];
-            let activeHoverId = null;
-            let staticBuffer;
-            let maxRadius = 0;
+            let shellPath2D, detailPaths2D = [], dropPositions = [], activeHoverId = null, staticBuffer, maxRadius = 0;
 
             p.setup = () => {
                 const container = document.getElementById(containerId);
@@ -777,14 +831,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 PATH_DETAILS.forEach(d => detailPaths2D.push(new Path2D(d)));
                 calculatePositions();
                 renderStaticBuffer();
-                
-                window.addEventListener('clearCharts', () => {
-                    if (activeHoverId !== null) {
-                        activeHoverId = null;
-                        p.redraw();
-                    }
-                });
-
+                window.addEventListener('clearCharts', () => { if (activeHoverId !== null) { activeHoverId = null; p.redraw(); } });
+                p.noLoop();
                 setTimeout(() => { p.windowResized(); }, 50);
             };
 
@@ -830,11 +878,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     const viewScale = p.width / 2000;
                     p.push(); p.translate(p.width / 2, p.height / 2); p.scale(viewScale);
                     dropPositions.forEach(drop => {
-                        p.push();
-                        p.translate(drop.x, drop.y);
-                        p.rotate(p.atan2(drop.y, drop.x) + p.HALF_PI);
-                        p.scale(settings.scale);
-                        p.translate(-61.5, -115.5);
+                        p.push(); p.translate(drop.x, drop.y); p.rotate(p.atan2(drop.y, drop.x) + p.HALF_PI);
+                        p.scale(settings.scale); p.translate(-61.5, -115.5);
                         const ctx = p.drawingContext;
                         ctx.globalAlpha = drop.group.id === activeHoverId ? 1.0 : 0.15;
                         ctx.fillStyle = drop.group.fill; ctx.strokeStyle = drop.group.stroke;
@@ -848,17 +893,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             };
 
-            const detectInteraction = (x, y, isTouch = false) => {
+            const detectInteraction = (x, y) => {
                 const viewScale = p.width / 2000;
                 const localX = (x - p.width / 2) / viewScale;
                 const localY = (y - p.height / 2) / viewScale;
                 if (p.dist(0, 0, localX, localY) > maxRadius) return null;
                 let foundHover = null;
-                const hitRadius = isTouch ? 50 : 25;
+                const hitRadius = 50; 
                 for (let i = 0; i < dropPositions.length; i++) {
                     if (p.dist(localX, localY, dropPositions[i].x, dropPositions[i].y) < hitRadius) {
-                        foundHover = dropPositions[i].group;
-                        break;
+                        foundHover = dropPositions[i].group; break;
                     }
                 }
                 return foundHover;
@@ -867,16 +911,15 @@ document.addEventListener("DOMContentLoaded", () => {
             const updateTooltipUI = (foundHover, pointerX, pointerY) => {
                 if (foundHover && activeHoverId !== foundHover.id) {
                     activeHoverId = foundHover.id;
-                    siteTooltip.innerHTML = `
-                        <button class="close-tooltip">✕</button>
+                    const contentHtml = `
                         <div class="tt-title">${titlePrefix} · ${foundHover.label}</div>
-                        <div class="tt-val-large" style="color: ${foundHover.fill}">${foundHover.displayCount}</div>
+                        <div class="tt-val-large" style="color: ${foundHover.fill};">${foundHover.displayCount}</div>
                         <div class="tt-desc" style="font-weight: 500;">${foundHover.subLabel}</div>
+                        <div class="tt-context">${foundHover.context}</div>
                     `;
-                    if (isMobile()) {
-                        triggerMobileTooltip(pointerX, pointerY);
-                    }
-                    siteTooltip.style.visibility = 'visible';
+                    
+                    if (isMobile()) { openMobileTapSheet(contentHtml); } 
+                    else { siteTooltip.innerHTML = contentHtml; setTooltipPosition(pointerX, pointerY); }
                     p.redraw();
                 } else if (!foundHover && activeHoverId !== null) {
                     clearInteraction();
@@ -895,45 +938,38 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (activeHoverId !== null) clearInteraction();
                     return;
                 }
-                if (!isMobile()) updateTooltipUI(detectInteraction(p.mouseX, p.mouseY, false), p.winMouseX, p.winMouseY);
+                if (!isMobile()) updateTooltipUI(detectInteraction(p.mouseX, p.mouseY), p.winMouseX, p.winMouseY);
             };
 
-            p.touchStarted = () => {
-                if (isMobile() && p.touches.length > 0) {
-                    const tx = p.touches[0].x, ty = p.touches[0].y;
-                    if (tx >= 0 && tx <= p.width && ty >= 0 && ty <= p.height) {
-                        const foundHover = detectInteraction(tx, ty, true);
-                        if (foundHover) {
-                            updateTooltipUI(foundHover, p.touches[0].winX, p.touches[0].winY);
-                        } else {
-                            if (activeHoverId !== null) clearInteraction();
-                        }
+            p.mouseClicked = () => {
+                if (isMobile()) {
+                    if (p.mouseX >= 0 && p.mouseX <= p.width && p.mouseY >= 0 && p.mouseY <= p.height) {
+                        const foundHover = detectInteraction(p.mouseX, p.mouseY);
+                        if (foundHover) { updateTooltipUI(foundHover, p.winMouseX, p.winMouseY); } 
+                        else { if (activeHoverId !== null) clearInteraction(); }
                     }
                 }
-                return true; 
             };
 
             p.windowResized = () => {
                 const container = document.getElementById(containerId);
                 p.resizeCanvas(container.clientWidth, container.clientWidth);
-                calculatePositions();
-                renderStaticBuffer();
-                p.redraw();
+                calculatePositions(); renderStaticBuffer(); p.redraw();
             };
         };
     };
 
     const day1Data = [
-        { id: 'missing',    count: 203,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '203',  subLabel: 'Many would never be found' },
-        { id: 'casualties', count: 159,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Lives Lost', displayCount: '159',  subLabel: 'A toll that would grow fourfold in 90 days' },
-        { id: 'affected',   count: 800,  fill: '#131110', stroke: '#F6F3EC', label: 'Affected',   displayCount: '800k', subLabel: 'Roughly the entire population of Colombo' }
+        { id: 'missing',    count: 203,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '203',  subLabel: 'Many would never be found', context: "Mountain villages were unreachable — families could not be contacted." },
+        { id: 'casualties', count: 159,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Lives Lost', displayCount: '159',  subLabel: 'A toll that would grow fourfold in 90 days', context: "Early count from hospitals still reachable by road." },
+        { id: 'affected',   count: 800,  fill: '#131110', stroke: '#F6F3EC', label: 'Affected',   displayCount: '800k', subLabel: 'Roughly the entire population of Colombo', context: "Estimate made before power and phone lines went down." }
     ];
     const day1Settings = { spacing: 17.5, startIndex: 1, scale: 0.13, angle: 137.508 * (Math.PI / 180) };
 
     const month3Data = [
-        { id: 'missing',    count: 173,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '173',  subLabel: 'Still lost, three months later' },
-        { id: 'casualties', count: 646,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Lives Lost', displayCount: '646',  subLabel: 'Four times the count from the first day' },
-        { id: 'affected',   count: 2300, fill: '#131110', stroke: '#F6F3EC', label: 'Affected',   displayCount: '2.3M', subLabel: 'Nearly 1 in 10 Sri Lankans' }
+        { id: 'missing',    count: 173,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '173',  subLabel: 'Still lost, three months later', context: "173 people were never found. Most presumed in landslide zones." },
+        { id: 'casualties', count: 646,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Lives Lost', displayCount: '646',  subLabel: 'Four times the count from the first day', context: "Four times the first-day figure. Most deaths were in the highlands." },
+        { id: 'affected',   count: 2300, fill: '#131110', stroke: '#F6F3EC', label: 'Affected',   displayCount: '2.3M', subLabel: 'Nearly 1 in 10 Sri Lankans', context: "The confirmed number, once all roads were cleared." }
     ];
     const month3Settings = { spacing: 14.1, startIndex: 1, scale: 0.11, angle: 137.508 * (Math.PI / 180) };
 
