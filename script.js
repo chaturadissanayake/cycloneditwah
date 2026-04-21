@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("resize", () => { ScrollTrigger.refresh(); });
 
+    const isMobile = () => window.innerWidth <= 768;
+
     // =========================================
     // 1. READING PROGRESS BAR
     // =========================================
@@ -16,27 +18,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // =========================================
-    // 2. MOBILE INTRO READ MORE TOGGLE
+    // 2. STAGGERED METRICS COUNTER
     // =========================================
-    const introBtn = document.getElementById('introReadMoreBtn');
-    const introContent = document.getElementById('introExpandContent');
-    if (introBtn && introContent) {
-        introBtn.addEventListener('click', () => {
-            introContent.style.display = 'block';
-            introBtn.style.display = 'none';
-            ScrollTrigger.refresh();
-        });
-    }
-
-    // =========================================
-    // 3. STAGGERED METRICS COUNTER
-    // =========================================
-    // Intro Breakout Counters
     const metricsContainerIntro = document.getElementById("metrics-container-intro");
     if (metricsContainerIntro) {
         ScrollTrigger.create({
             trigger: metricsContainerIntro,
-            start: "top 70%",
+            start: "top 85%", 
             once: true,
             onEnter: () => {
                 gsap.to(".metric-item-intro", {
@@ -48,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 metricsContainerIntro.querySelectorAll('.counter').forEach(el => {
                     const target = parseFloat(el.getAttribute('data-target'));
-                    const isFloat = target % 1 !== 0;
+                    const floatCheck = target % 1 !== 0;
                     let proxy = { val: 0 };
                     gsap.to(proxy, {
                         val: target,
@@ -56,42 +44,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         delay: 0.2,
                         ease: "power2.out",
                         onUpdate: function() {
-                            el.innerText = isFloat
-                                ? proxy.val.toFixed(1)
-                                : Math.floor(proxy.val).toLocaleString();
-                        }
-                    });
-                });
-            }
-        });
-    }
-
-    // Original Breakdown Counters
-    const metricsContainer = document.getElementById("metrics-container");
-    if (metricsContainer) {
-        ScrollTrigger.create({
-            trigger: metricsContainer,
-            start: "top 70%",
-            once: true,
-            onEnter: () => {
-                gsap.to(".metric-item", {
-                    y: 0,
-                    opacity: 1,
-                    duration: 0.8,
-                    stagger: 0.15,
-                    ease: "power2.out"
-                });
-                metricsContainer.querySelectorAll('.counter').forEach(el => {
-                    const target = parseFloat(el.getAttribute('data-target'));
-                    const isFloat = target % 1 !== 0;
-                    let proxy = { val: 0 };
-                    gsap.to(proxy, {
-                        val: target,
-                        duration: 2.2,
-                        delay: 0.3,
-                        ease: "power2.out",
-                        onUpdate: function() {
-                            el.innerText = isFloat
+                            el.innerText = floatCheck
                                 ? proxy.val.toFixed(1)
                                 : Math.floor(proxy.val).toLocaleString();
                         }
@@ -102,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================
-    // 4. COMPARISON SLIDER
+    // 3. COMPARISON SLIDER
     // =========================================
     const slider = document.getElementById('comparison-slider');
     const handle = document.getElementById('handle');
@@ -131,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================
-    // 5. MAP CAROUSEL
+    // 4. MAP CAROUSEL
     // =========================================
     const mapCarousel = document.getElementById('mapCarousel');
     const prevBtn = document.querySelector('.prev-arrow');
@@ -143,25 +96,59 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================
-    // 6. MAP MODAL LIGHTBOX (Pan & Zoom)
+    // 5. MAP MODAL LIGHTBOX
     // =========================================
     const modal = document.getElementById("mapModal");
     const mapBtn = document.getElementById("openMapBtn");
     const span = document.getElementsByClassName("close-modal")[0];
     const fullMapImg = document.getElementById("fullMapImg");
     const panContainer = document.getElementById("pan-container");
+    const toggleButton = document.getElementById('minimizationToggle');
+    const modalSidebar = document.querySelector('.modal-sidebar');
+    let isModalOpen = false;
 
-    if (modal && mapBtn && span && fullMapImg && panContainer) {
+    const closeModalLogic = () => {
+        modal.classList.remove("show");
+        fullMapImg.classList.remove("zoomed");
+        document.body.style.overflow = "";
+        isModalOpen = false;
+    };
+
+    if (modal && mapBtn && span && fullMapImg && panContainer && toggleButton && modalSidebar) {
         mapBtn.onclick = function () {
             modal.classList.add("show");
             document.body.style.overflow = "hidden";
             setTimeout(() => { panContainer.scrollTop = 0; panContainer.scrollLeft = 0; }, 10);
+            isModalOpen = true;
+            if(!window.history.state || !window.history.state.modalOpen) {
+                window.history.pushState({ modalOpen: true }, "");
+            }
         };
+
         span.onclick = function () {
-            modal.classList.remove("show");
-            fullMapImg.classList.remove("zoomed");
-            document.body.style.overflow = "";
+            if (isModalOpen) {
+                if(window.history.state && window.history.state.modalOpen) {
+                    window.history.back(); 
+                } else {
+                    closeModalLogic();
+                }
+            } else {
+                closeModalLogic();
+            }
         };
+
+        toggleButton.onclick = function () {
+            modalSidebar.classList.toggle('minimized-state');
+            const isMinimized = modalSidebar.classList.contains('minimized-state');
+            toggleButton.setAttribute('aria-label', isMinimized ? 'Maximize list' : 'Minimize list');
+        };
+
+        window.addEventListener('popstate', (e) => {
+            if (isModalOpen && (!e.state || !e.state.modalOpen)) {
+                closeModalLogic();
+            }
+        }, false);
+
         fullMapImg.onclick = function () {
             fullMapImg.classList.toggle("zoomed");
             if (fullMapImg.classList.contains("zoomed")) {
@@ -171,13 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }, 50);
             }
         };
-        window.addEventListener('click', function (event) {
-            if (event.target === modal) {
-                modal.classList.remove("show");
-                fullMapImg.classList.remove("zoomed");
-                document.body.style.overflow = "";
-            }
-        });
+
         let isDraggingMap = false;
         let startX, startY, scrollLeft, scrollTop;
         panContainer.addEventListener('mousedown', (e) => {
@@ -206,13 +187,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================
-    // 7. NARRATIVE REVEAL ANIMATIONS
+    // 6. NARRATIVE REVEAL ANIMATIONS
     // =========================================
     const fElements = gsap.utils.toArray('.fade-up');
     fElements.forEach(el => {
-        gsap.from(el, {
-            y: 28,
-            opacity: 0,
+        gsap.to(el, {
+            y: 0,
+            opacity: 1,
             duration: 0.8,
             ease: "power2.out",
             scrollTrigger: {
@@ -223,7 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // =========================================
-    // 8. BACK TO TOP
+    // 7. BACK TO TOP
     // =========================================
     const bttBtn = document.getElementById('backToTop');
     if (bttBtn) {
@@ -237,9 +218,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // CHARTS: Shared tooltip helper
     // =========================================
     const siteTooltip = document.getElementById('site-tooltip');
+    let mobileTooltipTimeout;
 
     function setTooltipPosition(clientX, clientY) {
         siteTooltip.style.visibility = "visible";
+        if (isMobile()) {
+            siteTooltip.classList.add('active-mobile-tooltip');
+            return; 
+        }
+        siteTooltip.classList.remove('active-mobile-tooltip');
         let x = clientX + 16;
         let y = clientY + 16;
         const ttRect = siteTooltip.getBoundingClientRect();
@@ -253,15 +240,51 @@ document.addEventListener("DOMContentLoaded", () => {
         siteTooltip.style.top = y + "px";
     }
 
+    const triggerMobileTooltip = (clientX, clientY) => {
+        setTooltipPosition(clientX, clientY);
+        clearTimeout(mobileTooltipTimeout);
+        mobileTooltipTimeout = setTimeout(() => {
+            dismissTooltip();
+        }, 3500);
+    }
+
+    const dismissTooltip = () => {
+        siteTooltip.style.visibility = 'hidden';
+        siteTooltip.classList.remove('active-mobile-tooltip');
+        document.querySelectorAll('.data-group, .viz-container canvas').forEach(el => el.classList.remove('active-touch'));
+    };
+
+    siteTooltip.addEventListener('click', (e) => {
+        if (e.target.closest('.close-tooltip')) dismissTooltip();
+    });
+
+    document.addEventListener('touchstart', (e) => {
+        const isTooltipOpen = siteTooltip.classList.contains('active-mobile-tooltip');
+        const tappedInsideTooltip = e.target.closest('#site-tooltip');
+        const tappedInsideChart = e.target.closest('#sect-infra, #sect-matrix, #interaction-area');
+        if (isTooltipOpen && !tappedInsideTooltip && !tappedInsideChart) {
+            dismissTooltip();
+        }
+    });
+
+    if (!siteTooltip.querySelector('.close-tooltip')) {
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-tooltip';
+        closeBtn.innerText = '✕';
+        closeBtn.setAttribute('aria-label', 'Dismiss details');
+        siteTooltip.appendChild(closeBtn);
+    }
+
+
     // =========================================
-    // CHART 1: INFRASTRUCTURE
+    // CHART 1: ECONOMIC INFRASTRUCTURE BREAKDOWN
     // =========================================
     (() => {
         const data = [
-            { label: "Infrastructure", val: 1735000000, share: "42%", detail: "Roads, bridges, and water networks." },
-            { label: "Residential",    val:  985000000, share: "24%", detail: "Housing and household contents." },
-            { label: "Agriculture",    val:  814000000, share: "20%", detail: "Paddy, livestock, and fishing gear." },
-            { label: "Non-Residential",val:  566000000, share: "14%", detail: "Schools, hospitals, and factories." }
+            { label: "Roads & Water",  val: 1735000000, share: "42%", detail: "Roads, bridges, and water networks." },
+            { label: "Homes",          val:  985000000, share: "24%", detail: "Houses and lost belongings." },
+            { label: "Farming",        val:  814000000, share: "20%", detail: "Crops, livestock, and fishing gear." },
+            { label: "Buildings",      val:  566000000, share: "14%", detail: "Schools, hospitals, and factories." }
         ];
         const svg = document.getElementById('reuters-chart');
         if (!svg || !siteTooltip) return;
@@ -292,33 +315,48 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const updateTT = (clientX, clientY) => {
                 siteTooltip.innerHTML = `
-                    <div class="tt-title">Economic Impact · ${d.label}</div>
+                    <button class="close-tooltip">✕</button>
+                    <div class="tt-title">Economic Damage · ${d.label}</div>
                     <div class="tt-val-large tt-val-red">$${(d.val / 1e9).toFixed(2)} Billion</div>
                     <div class="tt-desc" style="font-weight:700; margin-bottom:6px;">${d.share} of total damage</div>
                     <div class="tt-desc" style="border-top:1px solid var(--smoke); padding-top:8px;">${d.detail}</div>
                 `;
-                setTooltipPosition(clientX, clientY);
+                if(isMobile()) {
+                    triggerMobileTooltip(clientX, clientY);
+                } else {
+                    setTooltipPosition(clientX, clientY);
+                }
                 group.classList.add('active-touch');
             };
 
-            group.onmouseover = (e) => updateTT(e.clientX, e.clientY);
-            group.onmousemove = (e) => setTooltipPosition(e.clientX, e.clientY);
-            group.onmouseout = () => { siteTooltip.style.visibility = "hidden"; group.classList.remove('active-touch'); };
-            group.ontouchstart = (e) => {
-                e.preventDefault();
-                document.querySelectorAll('.data-group').forEach(g => g.classList.remove('active-touch'));
-                updateTT(e.touches[0].clientX, e.touches[0].clientY);
-            };
+            group.onmouseover = (e) => { if (!isMobile()) updateTT(e.clientX, e.clientY); };
+            group.onmousemove = (e) => { if (!isMobile()) setTooltipPosition(e.clientX, e.clientY); };
+            group.onmouseout = () => { if (!isMobile()) { siteTooltip.style.visibility = "hidden"; group.classList.remove('active-touch'); } };
+            
+            group.addEventListener('click', (e) => {
+                if (isMobile()) {
+                    document.querySelectorAll('.data-group').forEach(g => g.classList.remove('active-touch'));
+                    updateTT(e.clientX, e.clientY);
+                }
+            });
 
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
             line.setAttribute("x1", margin.left); line.setAttribute("y1", y);
-            line.setAttribute("x2", margin.left + xEnd); line.setAttribute("y2", y);
+            line.setAttribute("x2", margin.left); line.setAttribute("y2", y); 
+            line.setAttribute("data-target-x", margin.left + xEnd);
             line.setAttribute("class", "stem"); group.appendChild(line);
 
             const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            circle.setAttribute("cx", margin.left + xEnd); circle.setAttribute("cy", y);
+            circle.setAttribute("cx", margin.left); circle.setAttribute("cy", y); 
+            circle.setAttribute("data-target-cx", margin.left + xEnd);
             circle.setAttribute("r", "6"); circle.setAttribute("class", "head");
             group.appendChild(circle);
+
+            const hitArea = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            hitArea.setAttribute("x", 0); hitArea.setAttribute("y", y - 25);
+            hitArea.setAttribute("width", width); hitArea.setAttribute("height", 50);
+            hitArea.setAttribute("fill", "transparent"); hitArea.setAttribute("style", "pointer-events: all;");
+            group.appendChild(hitArea);
 
             const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
             text.setAttribute("x", margin.left - 15); text.setAttribute("y", y + 4);
@@ -327,10 +365,18 @@ document.addEventListener("DOMContentLoaded", () => {
             svg.appendChild(group);
         });
 
-        document.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('.data-group')) {
-                siteTooltip.style.visibility = "hidden";
-                document.querySelectorAll('.data-group').forEach(g => g.classList.remove('active-touch'));
+        // Trigger on the section to prevent early firing
+        ScrollTrigger.create({
+            trigger: "#sect-infra",
+            start: "top 65%",
+            once: true,
+            onEnter: () => {
+                svg.querySelectorAll('.stem').forEach(el => {
+                    gsap.to(el, { attr: { x2: el.getAttribute('data-target-x') }, duration: 1.5, ease: "power2.out" });
+                });
+                svg.querySelectorAll('.head').forEach(el => {
+                    gsap.to(el, { attr: { cx: el.getAttribute('data-target-cx') }, duration: 1.5, ease: "power2.out" });
+                });
             }
         });
     })();
@@ -348,12 +394,12 @@ document.addEventListener("DOMContentLoaded", () => {
             { d: "Dec 16", sc: 70000,  hf: 0 },
             { d: "Dec 19", sc: 66000,  hf: 0 },
             { d: "Dec 23", sc: 66000,  hf: 0 },
-            { d: "Dec 30", sc: 34175,  hf: 267700, note: "The Crossover" },
+            { d: "Dec 30", sc: 34175,  hf: 267700, note: "Shelters Close" },
             { d: "Jan 09", sc: 19000,  hf: 177000 },
             { d: "Jan 23", sc: 7100,   hf: 170000 },
             { d: "Feb 06", sc: 6680,   hf: 165000 },
             { d: "Feb 20", sc: 3400,   hf: 155000 },
-            { d: "Mar 06", sc: 149927, hf: 153000, note: "The Relapse" }
+            { d: "Mar 06", sc: 149927, hf: 153000, note: "Floods Return" }
         ];
 
         const svg = document.getElementById('main-chart');
@@ -420,34 +466,36 @@ document.addEventListener("DOMContentLoaded", () => {
                 tracker.setAttribute('x1', x); tracker.setAttribute('x2', x);
                 tracker.style.visibility = "visible";
                 siteTooltip.innerHTML = `
-                    <div class="tt-title">Displacement · ${d.d.toUpperCase()}</div>
+                    <button class="close-tooltip">✕</button>
+                    <div class="tt-title">People Displaced · ${d.d.toUpperCase()}</div>
                     <div class="tt-val-large">${(d.sc + d.hf).toLocaleString()}</div>
                     <div class="tt-flex" style="margin-top:10px;">
-                        <span><span style="color:var(--crimson)">●</span> Safety Centres:</span>
+                        <span><span style="color:var(--crimson)">●</span> Govt Shelters:</span>
                         <span style="font-weight:700">${d.sc.toLocaleString()}</span>
                     </div>
                     <div class="tt-flex">
-                        <span><span style="color:var(--ink)">●</span> Host Families:</span>
+                        <span><span style="color:var(--ink)">●</span> Staying with family:</span>
                         <span style="font-weight:700">${d.hf.toLocaleString()}</span>
                     </div>
                 `;
-                setTooltipPosition(clientX, clientY);
+                
+                if(isMobile()) {
+                    triggerMobileTooltip(clientX, clientY);
+                } else {
+                    setTooltipPosition(clientX, clientY);
+                }
             }
         };
 
-        interactionArea.onmousemove = (e) => handleInteraction(e.clientX, e.clientY);
-        interactionArea.ontouchstart = (e) => handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
-        interactionArea.ontouchmove = (e) => handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+        interactionArea.addEventListener('mousemove', (e) => { if (!isMobile()) handleInteraction(e.clientX, e.clientY); });
+        interactionArea.addEventListener('click', (e) => { if (isMobile()) handleInteraction(e.clientX, e.clientY); });
+        
         interactionArea.onmouseleave = () => {
-            siteTooltip.style.visibility = "hidden";
-            tracker.style.visibility = "hidden";
-        };
-        document.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('#interaction-area')) {
+            if (!isMobile()) {
                 siteTooltip.style.visibility = "hidden";
                 tracker.style.visibility = "hidden";
             }
-        });
+        };
     })();
 
     // =========================================
@@ -458,10 +506,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
-        const schools = { total: 10076, damaged: 1339, shelters: 500, closed: 147, functioning: 8090 };
+        const baseSchools = { total: 10076, damaged: 1339, shelters: 500, closed: 147, functioning: 8090 };
+        let schools = { ...baseSchools };
         const ui = { cols: 140, gap: 3, radius: 4, activeCat: null };
-        const rows = Math.ceil(schools.total / ui.cols);
-        const cellSize = ui.radius + ui.gap;
 
         const colors = {
             damaged: '191, 45, 38',
@@ -472,12 +519,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function init() {
             const dpr = window.devicePixelRatio || 1;
-            const internalWidth = ui.cols * cellSize;
-            const internalHeight = rows * cellSize;
+            const mob = isMobile();
+            
+            if (mob) {
+                schools.damaged = Math.ceil(baseSchools.damaged / 10);
+                schools.shelters = Math.ceil(baseSchools.shelters / 10);
+                schools.closed = Math.ceil(baseSchools.closed / 10);
+                schools.functioning = Math.ceil(baseSchools.functioning / 10);
+                schools.total = schools.damaged + schools.shelters + schools.closed + schools.functioning;
+                ui.cols = 35; 
+                ui.radius = 5;
+                ui.gap = 4;
+            } else {
+                schools = { ...baseSchools };
+                ui.cols = 140;
+                ui.radius = 4;
+                ui.gap = 3;
+            }
+
+            const hintEl = document.getElementById('matrix-mobile-hint');
+            if (hintEl) hintEl.style.display = mob ? 'block' : 'none';
+
+            const internalWidth = ui.cols * (ui.radius + ui.gap);
+            const internalHeight = Math.ceil(schools.total / ui.cols) * (ui.radius + ui.gap);
+            
             canvas.width = internalWidth * dpr;
             canvas.height = internalHeight * dpr;
-            canvas.style.width = (window.innerWidth <= 768) ? '700px' : '100%';
+            canvas.style.width = mob ? '100%' : internalWidth + 'px'; 
+            canvas.style.maxWidth = internalWidth + 'px';
             canvas.style.height = 'auto';
+            canvas.style.margin = '0 auto';
+            
+            ctx.setTransform(1, 0, 0, 1, 0, 0); 
             ctx.scale(dpr, dpr);
             render();
         }
@@ -491,10 +564,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const cellSizeLocal = ui.radius + ui.gap;
             for (let i = 0; i < schools.total; i++) {
                 const cat = getCategory(i);
-                const x = (i % ui.cols) * cellSize;
-                const y = Math.floor(i / ui.cols) * cellSize;
+                const x = (i % ui.cols) * cellSizeLocal;
+                const y = Math.floor(i / ui.cols) * cellSizeLocal;
                 let opacity = (ui.activeCat && ui.activeCat !== cat) ? 0.12 : 1;
                 ctx.fillStyle = `rgba(${colors[cat]}, ${opacity})`;
                 ctx.beginPath();
@@ -510,38 +584,51 @@ document.addEventListener("DOMContentLoaded", () => {
             const scaleY = (canvas.height / dpr) / rect.height;
             const mx = (clientX - rect.left) * scaleX;
             const my = (clientY - rect.top) * scaleY;
-            const col = Math.floor(mx / cellSize);
-            const row = Math.floor(my / cellSize);
+            const cellSizeLocal = ui.radius + ui.gap;
+            const col = Math.floor(mx / cellSizeLocal);
+            const row = Math.floor(my / cellSizeLocal);
             const index = (row * ui.cols) + col;
 
             if (index >= 0 && index < schools.total && col < ui.cols) {
                 const cat = getCategory(index);
                 if (ui.activeCat !== cat) { ui.activeCat = cat; render(); }
+                
                 const content = {
-                    damaged: ["Structurally Damaged",  "Buildings sustained serious structural failure during the cyclone.", "1,339", "var(--crimson)"],
-                    shelter: ["Emergency Shelter",     "Active learning suspended; space utilized for survival infrastructure.", "500", "var(--ink)"],
-                    closed:  ["Unable to Reopen",      "Remained closed due to access barriers or localized flooding.", "147", "var(--dust)"],
-                    open:    ["Theoretically Open",    "School remains operational or cleared for education — but many lack teachers or supplies.", "8,090", "var(--azure)"]
+                    damaged: ["Damaged Buildings", "Schools structurally ruined during the storm.", "1,339", "var(--crimson)"],
+                    shelter: ["Used as Shelters", "Schools turned into camps for homeless families.", "500", "var(--ink)"],
+                    closed:  ["Blocked Roads", "Schools kept shut because teachers and students couldn't safely travel there.", "147", "var(--dust)"],
+                    open:    ["Open but Struggling", "Schools technically running, but often missing students and supplies.", "8,090", "var(--azure)"]
                 };
+                
                 siteTooltip.innerHTML = `
-                    <div class="tt-title">Education Status · ${content[cat][0]}</div>
+                    <button class="close-tooltip">✕</button>
+                    <div class="tt-title">Education System · ${content[cat][0]}</div>
                     <div class="tt-val-large" style="color:${content[cat][3]}">${content[cat][2]}</div>
                     <div class="tt-desc">${content[cat][1]}</div>
                 `;
-                setTooltipPosition(clientX, clientY);
+                
+                if(isMobile()) {
+                    triggerMobileTooltip(clientX, clientY);
+                    canvas.classList.add('active-touch');
+                } else {
+                    setTooltipPosition(clientX, clientY);
+                }
+                
             } else {
-                if (ui.activeCat !== null) { ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden'; }
+                if (ui.activeCat !== null) { 
+                    ui.activeCat = null; 
+                    render(); 
+                    if (!isMobile()) {
+                        siteTooltip.style.visibility = 'hidden'; 
+                        canvas.classList.remove('active-touch');
+                    }
+                }
             }
         };
 
-        canvas.addEventListener('mousemove', (e) => handleCanvasInteraction(e.clientX, e.clientY));
-        canvas.addEventListener('touchstart', (e) => handleCanvasInteraction(e.touches[0].clientX, e.touches[0].clientY));
-        canvas.addEventListener('mouseleave', () => { ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden'; });
-        document.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('#sect-matrix')) {
-                ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden';
-            }
-        });
+        canvas.addEventListener('mousemove', (e) => { if (!isMobile()) handleCanvasInteraction(e.clientX, e.clientY); });
+        canvas.addEventListener('click', (e) => { if (isMobile()) handleCanvasInteraction(e.clientX, e.clientY); });
+        canvas.addEventListener('mouseleave', () => { if (!isMobile()) { ui.activeCat = null; render(); siteTooltip.style.visibility = 'hidden'; } });
         window.addEventListener('resize', init);
         init();
     })();
@@ -559,42 +646,44 @@ document.addEventListener("DOMContentLoaded", () => {
                 const pct = 100 - ((clientY - rect.top) / rect.height * 100);
                 if (pct > 63.7) {
                     siteTooltip.innerHTML = `
-                        <div class="tt-title">Funding Gap</div>
-                        <div class="tt-val-large tt-val-red">$12.8M Unmet</div>
-                        <p class="tt-desc">Formal funding plateaued at 63.7% of the $35.3M target.</p>
+                        <button class="close-tooltip">✕</button>
+                        <div class="tt-title">Missing Aid Money</div>
+                        <div class="tt-val-large tt-val-red">$12.8M Missing</div>
+                        <p class="tt-desc">The official recovery fund stalled out at just 63.7% of its $35.3M goal.</p>
                     `;
                 } else {
                     siteTooltip.innerHTML = `
-                        <div class="tt-title">Funded (HPP)</div>
-                        <div class="tt-val-large">$22.5M Secured</div>
-                        <p class="tt-desc">Resources delivered through the UN-led coordinated system.</p>
+                        <button class="close-tooltip">✕</button>
+                        <div class="tt-title">Official Aid Money</div>
+                        <div class="tt-val-large">$22.5M Raised</div>
+                        <p class="tt-desc">Money officially tracked and delivered to emergency sites.</p>
                     `;
                 }
             } else if (shadow) {
                 siteTooltip.innerHTML = `
-                    <div class="tt-title">Shadow Funding</div>
-                    <div class="tt-val-large" style="color:var(--dust)">Independent Flow</div>
-                    <p class="tt-desc">Direct bilateral or private aid bypassing the coordinated HPP system.</p>
+                    <button class="close-tooltip">✕</button>
+                    <div class="tt-title">Outside Money</div>
+                    <div class="tt-val-large" style="color:var(--dust)">Uncoordinated Cash</div>
+                    <p class="tt-desc">Private donations and unorganized money that skipped the main recovery plan.</p>
                 `;
             }
-            setTooltipPosition(clientX, clientY);
+            if(isMobile()) {
+                triggerMobileTooltip(clientX, clientY);
+            } else {
+                setTooltipPosition(clientX, clientY);
+            }
         };
 
         if(hpp) {
-            hpp.onmousemove = (e) => updateFundingTooltip(e.clientX, e.clientY, 'vessel');
-            hpp.ontouchstart = (e) => updateFundingTooltip(e.touches[0].clientX, e.touches[0].clientY, 'vessel');
-            hpp.onmouseleave = () => siteTooltip.style.visibility = 'hidden';
+            hpp.onmousemove = (e) => { if (!isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'vessel'); };
+            hpp.addEventListener('click', (e) => { if (isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'vessel'); });
+            hpp.onmouseleave = () => { if (!isMobile()) siteTooltip.style.visibility = 'hidden'; };
         }
         if (shadow) {
-            shadow.onmousemove = (e) => updateFundingTooltip(e.clientX, e.clientY, 'shadow');
-            shadow.ontouchstart = (e) => updateFundingTooltip(e.touches[0].clientX, e.touches[0].clientY, 'shadow');
-            shadow.onmouseleave = () => siteTooltip.style.visibility = 'hidden';
+            shadow.onmousemove = (e) => { if (!isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'shadow'); };
+            shadow.addEventListener('click', (e) => { if (isMobile()) updateFundingTooltip(e.clientX, e.clientY, 'shadow'); });
+            shadow.onmouseleave = () => { if (!isMobile()) siteTooltip.style.visibility = 'hidden'; };
         }
-        document.addEventListener('touchstart', (e) => {
-            if (!e.target.closest('#funding-interaction') && !e.target.closest('#shadow-flow')) {
-                siteTooltip.style.visibility = 'hidden';
-            }
-        });
 
         let animated = false;
 
@@ -603,7 +692,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const ease = 1 - Math.pow(1 - progress, 3); // cubic ease out
+                const ease = 1 - Math.pow(1 - progress, 3);
                 const currentVal = (ease * (end - start) + start).toFixed(1);
                 obj.innerHTML = `${prefix}${currentVal}${suffix}`;
                 if (progress < 1) window.requestAnimationFrame(step);
@@ -611,12 +700,13 @@ document.addEventListener("DOMContentLoaded", () => {
             window.requestAnimationFrame(step);
         }
 
-        const vesselTrigger = document.getElementById('funding-interaction') || document.getElementById('sect-funding');
+        const vesselTrigger = document.getElementById('sect-funding');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !animated) {
                     animated = true;
                     if(document.getElementById('vessel-fill-anim')) document.getElementById('vessel-fill-anim').style.height = '63.7%';
+                    if(document.getElementById('m-funding-fill-anim')) document.getElementById('m-funding-fill-anim').style.width = '63.7%';
                     if(document.getElementById('progress-fill-anim')) document.getElementById('progress-fill-anim').style.width = '44.2%';
                     document.querySelectorAll('.count-up-money').forEach(el =>
                         animateValue(el, 0, parseFloat(el.getAttribute('data-target')), 2200, '$', 'M')
@@ -627,7 +717,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         }, {
-            threshold: 0.5,   
+            threshold: 0.3,   
             rootMargin: '0px 0px -5% 0px'
         });
 
@@ -655,7 +745,6 @@ document.addEventListener("DOMContentLoaded", () => {
             let detailPaths2D = [];
             let dropPositions = [];
             let activeHoverId = null;
-            let touchTimeout = null;
             let staticBuffer;
             let maxRadius = 0;
 
@@ -707,27 +796,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
             p.draw = () => {
                 p.clear();
-                p.image(staticBuffer, 0, 0);
                 if (activeHoverId) {
-                    p.fill(246, 243, 236, 204); p.noStroke(); p.rect(0, 0, p.width, p.height);
                     const viewScale = p.width / 2000;
                     p.push(); p.translate(p.width / 2, p.height / 2); p.scale(viewScale);
                     dropPositions.forEach(drop => {
-                        if (drop.group.id === activeHoverId) {
-                            p.push();
-                            p.translate(drop.x, drop.y);
-                            p.rotate(p.atan2(drop.y, drop.x) + p.HALF_PI);
-                            p.scale(settings.scale);
-                            p.translate(-61.5, -115.5);
-                            const ctx = p.drawingContext;
-                            ctx.globalAlpha = 1.0;
-                            ctx.fillStyle = drop.group.fill; ctx.strokeStyle = drop.group.stroke;
-                            ctx.lineWidth = 2; ctx.fill(shellPath2D); ctx.stroke(shellPath2D);
-                            ctx.lineWidth = 0.5; detailPaths2D.forEach(path => ctx.stroke(path));
-                            p.pop();
-                        }
+                        p.push();
+                        p.translate(drop.x, drop.y);
+                        p.rotate(p.atan2(drop.y, drop.x) + p.HALF_PI);
+                        p.scale(settings.scale);
+                        p.translate(-61.5, -115.5);
+                        const ctx = p.drawingContext;
+                        ctx.globalAlpha = drop.group.id === activeHoverId ? 1.0 : 0.15;
+                        ctx.fillStyle = drop.group.fill; ctx.strokeStyle = drop.group.stroke;
+                        ctx.lineWidth = 2; ctx.fill(shellPath2D); ctx.stroke(shellPath2D);
+                        ctx.lineWidth = 0.5; detailPaths2D.forEach(path => ctx.stroke(path));
+                        p.pop();
                     });
                     p.pop();
+                } else {
+                    p.image(staticBuffer, 0, 0);
                 }
             };
 
@@ -751,21 +838,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (foundHover && activeHoverId !== foundHover.id) {
                     activeHoverId = foundHover.id;
                     siteTooltip.innerHTML = `
+                        <button class="close-tooltip">✕</button>
                         <div class="tt-title">${titlePrefix} · ${foundHover.label}</div>
                         <div class="tt-val-large" style="color: ${foundHover.fill}">${foundHover.displayCount}</div>
                         <div class="tt-desc" style="font-weight: 500;">${foundHover.subLabel}</div>
                     `;
+                    if (isMobile()) {
+                        triggerMobileTooltip(pointerX, pointerY);
+                    }
                     siteTooltip.style.visibility = 'visible';
                     p.redraw();
                 } else if (!foundHover && activeHoverId !== null) {
                     clearInteraction();
                 }
-                if (activeHoverId) setTooltipPosition(pointerX, pointerY);
+                if (activeHoverId && !isMobile()) setTooltipPosition(pointerX, pointerY);
             };
 
             const clearInteraction = () => {
                 activeHoverId = null;
-                siteTooltip.style.visibility = 'hidden';
+                if (!isMobile()) siteTooltip.style.visibility = 'hidden';
                 p.redraw();
             };
 
@@ -774,20 +865,22 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (activeHoverId !== null) clearInteraction();
                     return;
                 }
-                updateTooltipUI(detectInteraction(p.mouseX, p.mouseY, false), p.winMouseX, p.winMouseY);
+                if (!isMobile()) updateTooltipUI(detectInteraction(p.mouseX, p.mouseY, false), p.winMouseX, p.winMouseY);
             };
 
             p.touchStarted = () => {
-                if (p.touches.length > 0) {
+                if (isMobile() && p.touches.length > 0) {
                     const tx = p.touches[0].x, ty = p.touches[0].y;
                     if (tx >= 0 && tx <= p.width && ty >= 0 && ty <= p.height) {
                         const foundHover = detectInteraction(tx, ty, true);
-                        updateTooltipUI(foundHover, p.touches[0].winX, p.touches[0].winY);
-                        if (touchTimeout) clearTimeout(touchTimeout);
-                        if (foundHover) touchTimeout = setTimeout(() => { clearInteraction(); }, 2500);
+                        if (foundHover) {
+                            updateTooltipUI(foundHover, p.touches[0].winX, p.touches[0].winY);
+                        } else {
+                            if (activeHoverId !== null) clearInteraction();
+                        }
                     }
                 }
-                return true;
+                return true; 
             };
 
             p.windowResized = () => {
@@ -802,21 +895,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const day1Data = [
         { id: 'missing',    count: 203,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '203',  subLabel: 'Many would never be found' },
-        { id: 'casualties', count: 159,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Casualties', displayCount: '159',  subLabel: 'A toll that would grow fourfold in 90 days' },
+        { id: 'casualties', count: 159,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Lives Lost', displayCount: '159',  subLabel: 'A toll that would grow fourfold in 90 days' },
         { id: 'affected',   count: 800,  fill: '#131110', stroke: '#F6F3EC', label: 'Affected',   displayCount: '800k', subLabel: 'Roughly the entire population of Colombo' }
     ];
     const day1Settings = { spacing: 17.5, startIndex: 1, scale: 0.13, angle: 137.508 * (Math.PI / 180) };
 
     const month3Data = [
-        { id: 'missing',    count: 173,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '173',  subLabel: 'Still unaccounted for, three months on' },
-        { id: 'casualties', count: 646,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Casualties', displayCount: '646',  subLabel: 'Four times the toll from landfall day' },
+        { id: 'missing',    count: 173,  fill: '#8C7C69', stroke: '#F6F3EC', label: 'Missing',    displayCount: '173',  subLabel: 'Still lost, three months later' },
+        { id: 'casualties', count: 646,  fill: '#BF2D26', stroke: '#F6F3EC', label: 'Lives Lost', displayCount: '646',  subLabel: 'Four times the count from the first day' },
         { id: 'affected',   count: 2300, fill: '#131110', stroke: '#F6F3EC', label: 'Affected',   displayCount: '2.3M', subLabel: 'Nearly 1 in 10 Sri Lankans' }
     ];
     const month3Settings = { spacing: 14.1, startIndex: 1, scale: 0.11, angle: 137.508 * (Math.PI / 180) };
 
     if (document.getElementById('canvas-day1')) {
-        new p5(createSpiralSketch('canvas-day1', day1Data, day1Settings, 'Phase 01'), 'canvas-day1');
-        new p5(createSpiralSketch('canvas-month3', month3Data, month3Settings, 'Phase 02'), 'canvas-month3');
+        new p5(createSpiralSketch('canvas-day1', day1Data, day1Settings, 'Day 01 Impact'), 'canvas-day1');
+        new p5(createSpiralSketch('canvas-month3', month3Data, month3Settings, '3 Months Later'), 'canvas-month3');
     }
 
     const spiralFadeElements = document.querySelectorAll('.canvas-wrapper');
