@@ -16,47 +16,58 @@ document.addEventListener("DOMContentLoaded", () => {
     const isMobile = () => window.innerWidth <= 768;
 
     // =========================================
-    // 0. DESKTOP BANNER
+    // 0. DESKTOP BANNER (Auto-dismiss Mobile Fix)
     // =========================================
     const banner = document.getElementById('desktop-warning-banner');
-    const dismissBtn = document.getElementById('dismiss-banner');
-    let isBannerDismissed = false;
     
     const checkBannerVisibility = () => {
-        if (banner && dismissBtn && !isBannerDismissed) {
+        if (banner) {
             if (window.innerWidth < 1024) { 
-                banner.style.display = 'flex';
+                banner.style.display = 'block';
+                // Auto-dismiss banner after 12 seconds on mobile
+                setTimeout(() => {
+                    banner.style.transition = 'opacity 0.8s ease';
+                    banner.style.opacity = '0';
+                    setTimeout(() => {
+                        banner.style.display = 'none';
+                    }, 800);
+                }, 12000);
             } else {
-                banner.style.display = 'none';
+                banner.style.display = 'flex'; // Desktop view
             }
         }
     };
+    // Run once on load
     checkBannerVisibility();
-    window.addEventListener('resize', debounce(checkBannerVisibility, 150));
 
+    // Desktop manual dismiss
+    const dismissBtn = document.getElementById('dismiss-banner');
     if (dismissBtn) {
         dismissBtn.addEventListener('click', () => {
-            isBannerDismissed = true;
             if (banner) banner.style.display = 'none';
         });
     }
 
     // =========================================
-    // HERO RAIN P5 SKETCH
+    // 1. HERO RAIN P5 SKETCH (Desktop & Mobile)
     // =========================================
     const heroSketch = (p) => {
         let lines = [];
         p.setup = () => {
             let canvas = p.createCanvas(window.innerWidth, window.innerHeight);
-            canvas.parent('hero-canvas');
+            // Connect to the updated canvas ID
+            canvas.parent('hero-canvas-updated');
             for(let i=0; i<45; i++) {
                 lines.push({x: p.random(p.width), y: p.random(p.height), speed: p.random(3, 7), len: p.random(15, 35)});
             }
         };
         p.draw = () => {
             p.clear();
-            p.stroke('rgba(19,17,16,0.06)');
+            
+            // isMobile() guard removed as requested; runs everywhere
+            p.stroke('rgba(19,17,16,0.11)'); // Increased opacity per design brief
             p.strokeWeight(1);
+            
             lines.forEach(l => {
                 p.line(l.x, l.y, l.x + l.len*0.15, l.y + l.len);
                 l.y += l.speed;
@@ -66,16 +77,50 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         p.windowResized = () => p.resizeCanvas(window.innerWidth, window.innerHeight);
     };
-    let heroP5 = new p5(heroSketch);
-    ScrollTrigger.create({
-        trigger: '.hero',
-        start: 'bottom top',
-        onLeave: () => { if(heroP5) { heroP5.remove(); heroP5 = null; } }
-    });
+    
+    let heroP5 = null;
+    if (document.getElementById('hero-canvas-updated')) {
+        heroP5 = new p5(heroSketch);
+        ScrollTrigger.create({
+            trigger: '.hero',
+            start: 'bottom top',
+            onLeave: () => { if(heroP5) { heroP5.remove(); heroP5 = null; } },
+            onEnterBack: () => { if(!heroP5 && document.getElementById('hero-canvas-updated')) { heroP5 = new p5(heroSketch); } }
+        });
+    }
 
     // =========================================
-    // 1. READING PROGRESS BAR
+    // 2. READING PROGRESS BAR & DYNAMIC MARKERS
     // =========================================
+    const calculateChapterMarkers = () => {
+        const markers = document.querySelectorAll('.chapter-marker');
+        // Map markers to actual DOM sections
+        const targets = [
+            document.getElementById('intro-lane'), // Hits
+            document.getElementById('sect-infra'), // Broken System
+            document.getElementById('sect-arc'),   // Where Did People Go?
+            document.getElementById('sect-matrix'),// Education
+            document.getElementById('final-thoughts-section') // Recovery
+        ];
+        
+        markers.forEach((marker, i) => {
+            const target = targets[i];
+            if (target) {
+                const rect = target.getBoundingClientRect();
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const absoluteTop = rect.top + scrollTop;
+                const docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - window.innerHeight;
+                
+                let pct = (absoluteTop / docHeight) * 100;
+                pct = Math.max(2, Math.min(98, pct)); // Clamp to keep inside bar
+                marker.style.left = `${pct}%`;
+            }
+        });
+    };
+
+    window.addEventListener('load', calculateChapterMarkers);
+    window.addEventListener('resize', debounce(calculateChapterMarkers, 250));
+
     window.addEventListener('scroll', () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
         const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
@@ -86,7 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, { passive: true });
 
     // =========================================
-    // 2. STAGGERED METRICS & FINAL COUNT-UP
+    // 3. STAGGERED METRICS & FINAL COUNT-UP
     // =========================================
     const metricsContainerIntro = document.getElementById("metrics-container-intro");
     if (metricsContainerIntro) {
@@ -109,7 +154,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // GSAP innerHTML Deprecation Fix using Proxy
     const finalCountEl = document.getElementById("final-homeless-count");
     if (finalCountEl) {
         let countProxy = { val: 0 };
@@ -125,7 +169,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================
-    // 3. COMPARISON SLIDER & PARALLAX
+    // 4. COMPARISON SLIDER
     // =========================================
     if (!isMobile()) {
         gsap.to('.storm-phase-img', {
@@ -137,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const slider = document.getElementById('comparison-slider');
     const handle = document.getElementById('handle');
     const beforeLayer = document.getElementById('before-layer');
-    let isDragging = false;
+    let isDraggingSlider = false;
 
     if (slider && handle) {
         const moveSlider = (clientX) => {
@@ -148,20 +192,20 @@ document.addEventListener("DOMContentLoaded", () => {
             handle.style.left = percent + "%";
         };
         const onMove = (e) => {
-            if (!isDragging) return;
+            if (!isDraggingSlider) return;
             const x = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             moveSlider(x);
         };
-        handle.addEventListener('mousedown', () => isDragging = true);
-        window.addEventListener('mouseup', () => isDragging = false);
+        handle.addEventListener('mousedown', () => isDraggingSlider = true);
+        window.addEventListener('mouseup', () => isDraggingSlider = false);
         window.addEventListener('mousemove', onMove);
-        handle.addEventListener('touchstart', () => { isDragging = true; }, { passive: true });
-        window.addEventListener('touchend', () => isDragging = false);
-        window.addEventListener('touchmove', (e) => { if (isDragging) onMove(e); }, { passive: true });
+        handle.addEventListener('touchstart', () => { isDraggingSlider = true; }, { passive: true });
+        window.addEventListener('touchmove', () => isDraggingSlider = false);
+        window.addEventListener('touchmove', (e) => { if (isDraggingSlider) onMove(e); }, { passive: true });
     }
 
     // =========================================
-    // 4. MAP MODAL LIGHTBOX & CAROUSEL
+    // 5. EDITORIAL MAP CAROUSEL
     // =========================================
     const mapCarousel = document.getElementById('mapCarousel');
     const dots = document.querySelectorAll('.carousel-dots .dot');
@@ -172,33 +216,47 @@ document.addEventListener("DOMContentLoaded", () => {
         }, { passive: true });
     }
 
+    // =========================================
+    // 6. INTERACTIVE MAP MODAL (TRANSFORM BASED)
+    // =========================================
     const modal = document.getElementById("mapModal");
     const mapBtnDesktop = document.getElementById("openMapBtnDesktop");
     const mapBtnMobile = document.getElementById("openMapBtnMobile");
-    const span = document.getElementsByClassName("close-modal")[0];
+    const span = document.querySelector(".close-modal");
     const fullMapImg = document.getElementById("fullMapImg");
     const panContainer = document.getElementById("pan-container");
-    const modalSidebar = document.querySelector('.modal-sidebar');
-    const dragHandle = document.querySelector('.drag-handle-pill');
-    const sidebarTitleRow = document.querySelector('.sidebar-title-row');
+    
+    // Timeline variables
+    const phases = document.querySelectorAll('.sidebar-item');
+    const prevBtn = document.getElementById('modal-prev-btn');
+    const nextBtn = document.getElementById('modal-next-btn');
+    let currentPhaseIndex = -1;
+
+    // Map Transform State
+    let mapScale = 1;
+    let mapTranslateX = 0;
+    let mapTranslateY = 0;
+    const MIN_ZOOM = 1;
+    const MAX_ZOOM = 4;
+    let isDraggingMap = false;
+    let startDragX = 0, startDragY = 0;
+    let initialPinchDist = null;
+    let initialScale = 1;
+
+    const updateMapTransform = () => {
+        if (!fullMapImg) return;
+        fullMapImg.style.transform = `translate(${mapTranslateX}px, ${mapTranslateY}px) scale(${mapScale})`;
+        fullMapImg.style.transformOrigin = 'center center';
+    };
 
     const closeModalLogic = () => {
         if (!modal) return;
         modal.classList.remove("show");
-        fullMapImg.classList.remove("zoomed");
-        
         document.body.style.paddingRight = '0px';
         document.body.style.overflow = "";
         const progressCont = document.querySelector('.progress-bar-container');
         if (progressCont) progressCont.style.paddingRight = '0px';
     };
-
-    // Modal Escape Key Fix
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
-            closeModalLogic();
-        }
-    });
 
     const openMapLogic = function () {
         if (!modal) return;
@@ -212,71 +270,168 @@ document.addEventListener("DOMContentLoaded", () => {
         
         document.body.style.overflow = "hidden";
         modal.classList.add("show");
-        setTimeout(() => { panContainer.scrollTop = 0; panContainer.scrollLeft = 0; }, 10);
+        
+        // Reset Map State
+        mapScale = 1; mapTranslateX = 0; mapTranslateY = 0;
+        updateMapTransform();
+        
+        // Push History State for Android Back Button
+        history.pushState({ modalOpen: true }, '');
     };
 
-    if (modal && span && fullMapImg && panContainer && modalSidebar) {
+    // Close on Hardware Back Button
+    window.addEventListener('popstate', (e) => {
+        if (modal && modal.classList.contains('show')) {
+            closeModalLogic();
+        }
+    });
+
+    if (modal && fullMapImg && panContainer) {
         if (mapBtnDesktop) mapBtnDesktop.onclick = openMapLogic;
         if (mapBtnMobile) mapBtnMobile.onclick = openMapLogic;
-        span.onclick = closeModalLogic;
-
-        // Mobile Swipe & Tap Support for Sidebar
-        if(sidebarTitleRow) {
-            sidebarTitleRow.addEventListener('click', () => modalSidebar.classList.toggle('expanded'));
-            
-            let startY = 0;
-            sidebarTitleRow.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; }, {passive: true});
-            sidebarTitleRow.addEventListener('touchend', (e) => {
-                let endY = e.changedTouches[0].clientY;
-                if (startY - endY > 20) { 
-                    modalSidebar.classList.add('expanded'); // Swipe Up
-                } else if (endY - startY > 20) { 
-                    modalSidebar.classList.remove('expanded'); // Swipe Down
-                }
-            }, {passive: true});
-        }
-
-        fullMapImg.onclick = function () {
-            fullMapImg.classList.toggle("zoomed");
-            if (fullMapImg.classList.contains("zoomed")) {
-                setTimeout(() => {
-                    panContainer.scrollLeft = (panContainer.scrollWidth - panContainer.clientWidth) / 2;
-                    panContainer.scrollTop = (panContainer.scrollHeight - panContainer.clientHeight) / 2;
-                }, 50);
-            }
+        
+        span.onclick = () => {
+            closeModalLogic();
+            if (history.state && history.state.modalOpen) { history.back(); }
         };
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                closeModalLogic();
+                if (history.state && history.state.modalOpen) { history.back(); }
+            }
+        });
 
-        let isDraggingMap = false;
-        let startX, startY, scrollLeft, scrollTop;
+        // --- MOUSE EVENTS (DESKTOP PAN/ZOOM) ---
+        panContainer.style.overflow = 'hidden'; // Force hide scrollbars for custom pan
+        
+        panContainer.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomAmount = -e.deltaY * 0.002;
+            mapScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, mapScale + zoomAmount));
+            updateMapTransform();
+        }, { passive: false });
+
+        panContainer.addEventListener('dblclick', () => {
+            mapScale = 1; mapTranslateX = 0; mapTranslateY = 0;
+            updateMapTransform();
+        });
+
         panContainer.addEventListener('mousedown', (e) => {
-            if (!fullMapImg.classList.contains("zoomed")) return;
             isDraggingMap = true;
             fullMapImg.style.cursor = 'grabbing';
-            startX = e.pageX - panContainer.offsetLeft;
-            startY = e.pageY - panContainer.offsetTop;
-            scrollLeft = panContainer.scrollLeft;
-            scrollTop = panContainer.scrollTop;
+            startDragX = e.clientX - mapTranslateX;
+            startDragY = e.clientY - mapTranslateY;
         });
-        panContainer.addEventListener('mouseleave', () => {
+
+        window.addEventListener('mouseup', () => {
             isDraggingMap = false;
-            fullMapImg.style.cursor = fullMapImg.classList.contains("zoomed") ? 'zoom-out' : 'zoom-in';
+            fullMapImg.style.cursor = 'grab';
         });
-        panContainer.addEventListener('mouseup', () => {
-            isDraggingMap = false;
-            fullMapImg.style.cursor = fullMapImg.classList.contains("zoomed") ? 'zoom-out' : 'zoom-in';
-        });
-        
-        // Panning Speed Fix (reduced 1.5 to 1.0)
-        panContainer.addEventListener('mousemove', (e) => {
+
+        window.addEventListener('mousemove', (e) => {
             if (!isDraggingMap) return;
             e.preventDefault();
-            panContainer.scrollLeft = scrollLeft - ((e.pageX - panContainer.offsetLeft - startX) * 1.0);
-            panContainer.scrollTop = scrollTop - ((e.pageY - panContainer.offsetTop - startY) * 1.0);
+            mapTranslateX = e.clientX - startDragX;
+            mapTranslateY = e.clientY - startDragY;
+            updateMapTransform();
         });
+
+        // --- TOUCH EVENTS (MOBILE PAN/PINCH) ---
+        panContainer.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                isDraggingMap = true;
+                startDragX = e.touches[0].clientX - mapTranslateX;
+                startDragY = e.touches[0].clientY - mapTranslateY;
+            } else if (e.touches.length === 2) {
+                isDraggingMap = false;
+                initialPinchDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                initialScale = mapScale;
+            }
+        }, { passive: false });
+
+        panContainer.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Stop page scrolling
+            if (e.touches.length === 1 && isDraggingMap) {
+                mapTranslateX = e.touches[0].clientX - startDragX;
+                mapTranslateY = e.touches[0].clientY - startDragY;
+                updateMapTransform();
+            } else if (e.touches.length === 2 && initialPinchDist) {
+                const currentDist = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const zoomFactor = currentDist / initialPinchDist;
+                mapScale = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, initialScale * zoomFactor));
+                updateMapTransform();
+            }
+        }, { passive: false });
+
+        panContainer.addEventListener('touchend', (e) => {
+            if (e.touches.length < 2) initialPinchDist = null;
+            if (e.touches.length === 0) isDraggingMap = false;
+        });
+
+        // --- TIMELINE SIDEBAR NAVIGATION ---
+        const phaseCoordinates = [
+            { s: 2.2, x: 0, y: -150 },    // Coastal
+            { s: 2.8, x: -40, y: 100 },   // Mountains
+            { s: 2.2, x: 20, y: 300 }     // North
+        ];
+
+        const activatePhase = (index) => {
+            if (index < 0 || index >= phases.length) return;
+            currentPhaseIndex = index;
+            
+            // Styling
+            phases.forEach((p, i) => {
+                p.style.opacity = i === index ? '1' : '0.4';
+                p.style.borderLeft = i === index ? '3px solid var(--ink)' : 'none';
+                p.style.paddingLeft = i === index ? '16px' : '0';
+            });
+
+            // Animate map to location
+            const coords = phaseCoordinates[index];
+            if (coords) {
+                mapScale = coords.s; mapTranslateX = coords.x; mapTranslateY = coords.y;
+                updateMapTransform();
+            }
+
+            // Buttons state
+            if(prevBtn) prevBtn.style.opacity = index === 0 ? '0.3' : '1';
+            if(nextBtn) nextBtn.style.opacity = index === phases.length - 1 ? '0.3' : '1';
+        };
+
+        phases.forEach((phase, index) => {
+            phase.addEventListener('click', () => activatePhase(index));
+            phase.style.transition = 'all 0.3s ease';
+            phase.style.cursor = 'pointer';
+        });
+
+        if (prevBtn) prevBtn.addEventListener('click', () => { if(currentPhaseIndex > 0) activatePhase(currentPhaseIndex - 1); });
+        if (nextBtn) nextBtn.addEventListener('click', () => { if(currentPhaseIndex < phases.length - 1) activatePhase(currentPhaseIndex + 1); });
+
+        // Mobile Minimize Toggle
+        const dragPill = document.querySelector('.drag-handle-pill');
+        const minimizableContent = document.getElementById('minimizableContent');
+        const sidebarNavBtns = document.querySelector('.sidebar-nav-buttons');
+        const modalSidebar = document.querySelector('.modal-sidebar');
+        
+        if (dragPill && minimizableContent) {
+            dragPill.addEventListener('click', () => {
+                const isHidden = minimizableContent.style.display === 'none';
+                minimizableContent.style.display = isHidden ? 'block' : 'none';
+                if(sidebarNavBtns) sidebarNavBtns.style.display = isHidden ? 'flex' : 'none';
+                modalSidebar.style.maxHeight = isHidden ? '65vh' : 'auto'; // Shrinkwrap
+            });
+        }
     }
 
     // =========================================
-    // 5. NARRATIVE REVEAL ANIMATIONS
+    // 7. NARRATIVE REVEAL ANIMATIONS
     // =========================================
     const fElements = gsap.utils.toArray('.fade-up');
     fElements.forEach(el => {
@@ -287,7 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // =========================================
-    // 6. BACK TO TOP
+    // 8. BACK TO TOP
     // =========================================
     const bttBtn = document.getElementById('backToTop');
     if (bttBtn) {
@@ -298,7 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =========================================
-    // 7. CHARTS: Shared Tooltip & Mobile Sheet
+    // 9. CHARTS: Shared Tooltip & Mobile Sheet
     // =========================================
     const siteTooltip = document.getElementById('site-tooltip');
     const mobileTapSheet = document.getElementById('mobile-tap-sheet');
@@ -594,7 +749,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const dpr = window.devicePixelRatio || 1;
             const mob = isMobile();
             
-            // Allow container to stretch naturally to available width
             const matrixWrapper = document.querySelector('#sect-matrix .viz-container');
             const containerWidth = matrixWrapper ? matrixWrapper.clientWidth : (mob ? window.innerWidth - 40 : 1100);
 
@@ -611,8 +765,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
 
             const cellSizeLocal = ui.radius + ui.gap;
-            
-            // Dynamically calculate column count to perfectly fit the screen width edge-to-edge
             ui.cols = Math.max(10, Math.floor(containerWidth / cellSizeLocal));
 
             const internalWidth = ui.cols * cellSizeLocal;
@@ -703,7 +855,6 @@ document.addEventListener("DOMContentLoaded", () => {
         window.addEventListener('clearCharts', () => { if (ui.activeCat !== null) { ui.activeCat = null; render(); } });
         window.addEventListener('resize', debounce(init, 250));
         
-        // Wait to allow container CSS to compute actual screen size perfectly before painting
         setTimeout(init, 100);
     })();
 
@@ -807,7 +958,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })();
 
     // =========================================
-    // SPIRAL VISUALIZATIONS (Optimized Loop)
+    // SPIRAL VISUALIZATIONS & SIMPLE BAR TOGGLE
     // =========================================
     const PATH_SHELL = "M67.92,1.63c.39-.96,1.79-.78,1.92.24.89,6.91,2.28,15.58,4.53,25.45.99,4.35,4.66,19.9,12.5,40.17,2.2,5.69,5.91,13.96,13.33,30.5,7.83,17.46,10.07,21.8,13.83,31.83,4.55,12.11,6.84,18.35,8,27.33.81,6.26,1.93,15.65-1,27.33-3.38,13.48-10.21,22.34-12.83,25.5-3.2,3.86-8.17,9.76-16.67,14.17-8,4.15-15.23,4.95-24.67,6-5.26.58-10.27,1.14-16.83.5-4.2-.41-14.54-1.42-24.17-7.33-15.51-9.52-20.33-26.34-22.33-33.33-3.69-12.87-2.62-23.22-1.33-34.5,1.9-16.66,6.37-28.11,14.17-47.83,3.16-7.99,10.39-25.52,21.83-46.83,7.44-13.86,11-18.76,18.17-33.33,5.04-10.24,8.86-19.16,11.55-25.85Z";
     const PATH_DETAILS = [
@@ -973,9 +1124,38 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
     const month3Settings = { spacing: 14.1, startIndex: 1, scale: 0.11, angle: 137.508 * (Math.PI / 180) };
 
+    // Function to render the simple, accessible HTML bar charts
+    const renderSimpleBars = (containerId, data) => {
+        const container = document.getElementById(containerId);
+        if(!container) return;
+        
+        let html = '<div style="display: flex; flex-direction: column; justify-content: center; height: 100%; gap: 24px; padding: 20px 40px; box-sizing: border-box;">';
+        const maxCount = Math.max(...data.map(d => d.count));
+        
+        data.forEach(d => {
+            const pct = (d.count / maxCount) * 100;
+            html += `
+                <div style="display: flex; align-items: center; gap: 16px; width: 100%;">
+                    <div style="width: 80px; text-align: right; font-family: var(--font-ui); font-size: 11px; font-weight: 700; color: var(--dust); text-transform: uppercase; line-height: 1.2;">${d.label}</div>
+                    <div style="flex: 1; height: 12px; background: var(--paper-mid); border-radius: 6px; overflow: hidden; border: 1px solid var(--smoke);">
+                        <div style="width: ${pct}%; height: 100%; background: ${d.fill}; border-radius: 6px;"></div>
+                    </div>
+                    <div style="width: 60px; font-family: var(--font-head); font-size: 20px; font-weight: 900; color: var(--ink); text-align: left;">${d.displayCount}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+        container.style.width = '100%';
+        container.style.height = '100%';
+    };
+
     if (document.getElementById('canvas-day1')) {
         new p5(createSpiralSketch('canvas-day1', day1Data, day1Settings, 'Day 01 Impact'), 'canvas-day1');
         new p5(createSpiralSketch('canvas-month3', month3Data, month3Settings, '3 Months Later'), 'canvas-month3');
+        
+        renderSimpleBars('bar-day1', day1Data);
+        renderSimpleBars('bar-month3', month3Data);
     }
 
     const spiralFadeElements = document.querySelectorAll('.canvas-wrapper');
@@ -987,5 +1167,49 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }, { threshold: 0.35 });
-    spiralFadeElements.forEach(el => chartObserver.observe(el));
+    
+    // Only observe the default visible canvases so the hidden bars don't trigger early
+    if(document.getElementById('canvas-day1')) chartObserver.observe(document.getElementById('canvas-day1'));
+    if(document.getElementById('canvas-month3')) chartObserver.observe(document.getElementById('canvas-month3'));
+
+    // The Toggle Logic for Simple/Complex Charts
+    const toggleBtn = document.getElementById('toggle-chart-view');
+    let showingBars = false;
+    
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            showingBars = !showingBars;
+            
+            const spirals = ['#canvas-day1', '#canvas-month3'];
+            const bars = ['#bar-day1', '#bar-month3'];
+            
+            if (showingBars) {
+                toggleBtn.innerText = "View Original Visualizations";
+                
+                // Fade out spirals
+                gsap.to(spirals, { opacity: 0, duration: 0.4, ease: "power2.inOut", onComplete: () => {
+                    document.getElementById('canvas-day1').style.pointerEvents = 'none';
+                    document.getElementById('canvas-month3').style.pointerEvents = 'none';
+                    document.getElementById('bar-day1').style.display = 'block';
+                    document.getElementById('bar-month3').style.display = 'block';
+                    
+                    // Fade in bars
+                    gsap.fromTo(bars, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.inOut" });
+                }});
+            } else {
+                toggleBtn.innerText = "View Simple Bar Charts";
+                
+                // Fade out bars
+                gsap.to(bars, { opacity: 0, duration: 0.4, ease: "power2.inOut", onComplete: () => {
+                    document.getElementById('bar-day1').style.display = 'none';
+                    document.getElementById('bar-month3').style.display = 'none';
+                    document.getElementById('canvas-day1').style.pointerEvents = 'auto';
+                    document.getElementById('canvas-month3').style.pointerEvents = 'auto';
+                    
+                    // Fade in spirals
+                    gsap.to(spirals, { opacity: 1, duration: 0.4, ease: "power2.inOut" });
+                }});
+            }
+        });
+    }
 });
