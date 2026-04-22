@@ -9,11 +9,234 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
+    <style>
+        /* Hero Liveliness & Layout Fixes */
+        @keyframes subtleFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+        .hero-img-float {
+            animation: subtleFloat 6s ease-in-out infinite;
+            transform-origin: center bottom;
+        }
+        
+        @keyframes hero-nudge {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(4px); }
+        }
+
+        .scroll-text-pulse {
+            font-family: var(--font-ui); font-size: 10px; font-weight: 700; 
+            text-transform: uppercase; letter-spacing: 0.2em; color: var(--ink);
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            opacity: 1 !important; 
+        }
+
+        /* Minimal Vertical Line Animation */
+        .scroll-line-indicator {
+            width: 1px;
+            height: 40px;
+            background: linear-gradient(to bottom, rgba(19,17,16,0.5), rgba(19,17,16,0));
+            margin: 6px auto 0 auto;
+            animation: lineGrow 2s ease-in-out infinite;
+            transform-origin: top center;
+        }
+
+        @keyframes lineGrow {
+            0%, 100% { transform: scaleY(0.4); opacity: 0.3; }
+            50% { transform: scaleY(1); opacity: 0.8; }
+        }
+        
+        .hero-flex-layout {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100svh; padding: 60px 20px 40px 20px; position: relative; overflow: hidden;
+        }
+        .scroll-indicator-wrapper {
+            margin-top: 6vh; z-index: 2; position: relative;
+        }
+
+        /* Pure Flat Informational Banner - Full Width Fix */
+        #desktop-warning-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            max-width: 100vw;
+            box-sizing: border-box; /* Prevents horizontal scroll from padding */
+            border-radius: 0; /* no curves at all */
+            background: #131110;
+            color: #F6F3EC;
+            padding: 12px 24px;
+            text-align: center;
+            font-family: var(--font-ui);
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.5;
+            letter-spacing: 0.02em;
+            box-shadow: none;
+            border: none;
+            z-index: 10000;
+            display: none; /* shown only on mobile via JS */
+            transform: none !important; /* remove any translations causing off-center */
+            margin: 0 !important;
+        }
+        
+        /* Remove the dismiss button entirely on mobile */
+        #dismiss-banner {
+            display: none !important;
+        }
+
+        /* Premium Map Modal Redesign (No Scrollbars) */
+        .map-modal-redesign .modal-layout {
+            display: block; position: relative; width: 100%; height: 100svh; padding-top: 0;
+        }
+        .map-modal-redesign .modal-header { display: none !important; }
+        
+        .map-modal-redesign .close-modal {
+            position: absolute; top: 24px; right: 24px; z-index: 100;
+            background: transparent; width: auto; height: auto; border-radius: 0;
+            box-shadow: none; display: flex; align-items: center; justify-content: center;
+            border: none; color: var(--ink); padding: 8px; cursor: pointer; transition: opacity 0.2s;
+        }
+        .map-modal-redesign .close-modal:hover { background: transparent; opacity: 0.6; }
+
+        .map-modal-redesign .modal-map-container {
+            width: 100%; height: 100%; padding: 0; background: var(--paper-mid);
+            overflow: auto; scrollbar-width: none; -ms-overflow-style: none;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .map-modal-redesign .modal-map-container::-webkit-scrollbar { display: none; }
+        
+        .map-modal-redesign .modal-sidebar {
+            position: absolute; top: 24px; left: 24px; width: 380px; height: auto; max-height: calc(100vh - 48px);
+            background: rgba(246, 243, 236, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-radius: 20px; border: 1px solid rgba(19, 17, 16, 0.08);
+            box-shadow: 0 16px 40px rgba(0,0,0,0.12); padding: 32px;
+            display: flex; flex-direction: column; transform: none; margin: 0;
+        }
+        .map-modal-redesign .zoom-hint {
+            position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+            background: var(--ink); color: var(--paper); padding: 12px 24px; border-radius: 40px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-family: var(--font-ui); font-size: 11px;
+            font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none;
+        }
+
+        /* =========================================
+           MOBILE SPECIFIC FIXES 
+           ========================================= */
+        @media (max-width: 768px) {
+            
+            /* Text-Only Cinematic Hero */
+            .hero-flex-layout {
+                padding-top: 80px; /* clears the flat banner */
+                padding-bottom: 48px;
+                min-height: 100svh;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 0;
+            }
+            
+            .hero-content {
+                flex-shrink: 0;
+                margin-top: 10px;
+            }
+            .hero-title {
+                margin-bottom: 12px;
+                font-size: clamp(2.3rem, 9vw, 3rem);
+            }
+            .hero-subtitle {
+                margin-bottom: 16px;
+                line-height: 1.45;
+            }
+            
+            /* Tightened Byline Metadata */
+            .hero-bylines {
+                padding-top: 12px;
+            }
+            .hero-bylines .meta-row:first-child {
+                margin-bottom: 2px;
+            }
+            .hero-bylines .meta-row:last-child {
+                margin-top: 2px;
+            }
+
+            /* Hide the illustration completely inside the hero */
+            .hero-mobile-img-wrapper {
+                display: none !important;
+            }
+
+            /* Absolute Positioning for Scroll Indicator */
+            .scroll-indicator-wrapper {
+                position: absolute;
+                bottom: 32px;
+                left: 50%;
+                transform: translateX(-50%);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 6px;
+                margin: 0 !important;
+            }
+            .scroll-text-pulse {
+                font-size: 9px;
+                letter-spacing: 0.2em;
+                opacity: 0.5 !important;
+            }
+
+            /* Cinematic Image Reveal Section */
+            .mobile-hero-image-reveal {
+                width: 100vw;
+                height: auto;
+                min-height: 85vh;
+                overflow: hidden;
+                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                background: var(--paper);
+            }
+            .mobile-hero-image-reveal img {
+                width: 100%;
+                height: 80vh;
+                object-fit: contain;
+                object-position: center center;
+                display: block;
+            }
+
+            /* Content Teaser Cue Below Image */
+            .image-continue-cue {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+                padding: 20px 0 32px 0;
+                font-family: var(--font-ui);
+                font-size: 10px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.2em;
+                color: var(--dust);
+                opacity: 0.7;
+            }
+
+            /* Map Modal overwrites */
+            .map-modal-redesign .modal-sidebar {
+                top: auto; left: 0; bottom: 0; width: 100%; border-radius: 24px 24px 0 0;
+                padding: 24px 24px 40px 24px; max-height: 65vh; border: none; border-top: 1px solid rgba(19,17,16,0.1);
+            }
+            .map-modal-redesign .close-modal { top: 16px; right: 16px; width: auto; height: auto; }
+            .map-modal-redesign .zoom-hint { display: none; }
+        }
+    </style>
 </head>
 <body>
 
     <div id="desktop-warning-banner">
-        <span>This story was designed for desktop. For charts, maps, and the full experience — open it on a larger screen.</span>
+        This story was designed for desktop. For charts and the full experience, please use a larger screen.
         <button id="dismiss-banner" aria-label="Dismiss">&times;</button>
     </div>
 
@@ -28,8 +251,18 @@
         <div class="chapter-marker" style="left: 96%;" data-chapter="The Recovery"></div>
     </div>
 
-    <header class="hero">
-        <div id="hero-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></div>
+    <header class="hero hero-flex-layout">
+        
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;">
+            <div id="hero-canvas-updated" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></div>
+        </div>
+        
+        <div class="desktop-only" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 1920px; height: 100%; z-index: 0; pointer-events: none;">
+            <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                <img src="Assets/desktopwb.png" class="hero-img-float" alt="" style="width: 100%; height: 100%; object-fit: contain; background: transparent; border: none; box-shadow: none;">
+            </div>
+        </div>
+
         <div class="hero-content reading-lane fade-up" style="position: relative; z-index: 1;">
             <h1 class="hero-title">
                 How a Single<br>
@@ -37,6 +270,7 @@
                 Sri Lanka
             </h1>
             <p class="hero-subtitle">A clear look at how Cyclone Ditwah destroyed roads, homes, and lives, and where the recovery effort fell short.</p>
+            
             <div class="hero-bylines">
                 <p class="meta-row">
                     <span class="meta-authors">By <a href="https://www.linkedin.com/in/chaturadissanayake/" target="_blank">Chatura Dissanayake</a> & <a href="https://www.linkedin.com/in/imalinillekumbura/" target="_blank">Imali Nillekumbura</a></span>
@@ -46,7 +280,26 @@
                 </p>
             </div>
         </div>
+
+        <div class="mobile-only hero-mobile-img-wrapper">
+            <img src="Assets/heroimagemobileleft.png" alt="Man holding a dog in floodwaters">
+        </div>
+
+        <div class="scroll-indicator-wrapper fade-up text-center">
+            <div class="scroll-text-pulse">
+                <span>Scroll</span>
+                <div class="scroll-line-indicator"></div>
+            </div>
+        </div>
     </header>
+
+    <section class="mobile-hero-image-reveal mobile-only">
+        <img src="Assets/heroimagemobileleft.png" alt="Man carrying dog through floodwater">
+        <div class="image-continue-cue fade-up">
+            <span>The story continues below</span>
+            <div class="scroll-line-indicator"></div>
+        </div>
+    </section>
 
     <main class="story-flow">
         
@@ -203,7 +456,12 @@
                         <img src="Assets/ditwahbefore.png" alt="Intact village before the storm" loading="lazy">
                         <div class="slider-label label-before">BEFORE</div>
                     </div>
-                    <div class="minimal-handle" id="handle" role="slider" aria-valuenow="50"></div>
+                    <div class="minimal-handle" id="handle" role="slider" aria-valuenow="50">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="11 16 7 12 11 8"></polyline>
+                            <polyline points="13 16 17 12 13 8"></polyline>
+                        </svg>
+                    </div>
                 </div>
                 <div class="stage-annotation text-center">
                     <span class="interaction-hint" style="margin-bottom: 12px;">
@@ -432,7 +690,13 @@
                 <p>Nearly 20% of the country's ready-to-pick crops were destroyed by the floods. This disaster ruined the livelihoods of about 70,000 small farmers and drove up the price of food in the cities as supplies quickly ran out.</p>
             </div>
             
-            </section>
+            <div class="fade-up" style="max-width: 1200px; margin: 40px auto 0 auto; width: 100%;">
+                <picture>
+                    <source media="(max-width: 768px)" srcset="Assets/farmermobile.png">
+                    <img src="Assets/farmer.png" alt="Destroyed crops and farmers affected" loading="lazy" style="width: 100%; height: auto; display: block; margin: 0 auto; background: transparent; border: none; box-shadow: none; outline: none;">
+                </picture>
+            </div>
+        </section>
 
         <section class="story-section bg-alt" style="border-top: none; padding-bottom: 0;">
             <div class="reading-lane fade-up">
@@ -587,45 +851,52 @@
         </div>
     </footer>
 
-    <div id="mapModal" class="modal">
-        <div class="modal-header">
-            <h3 class="modal-title">The Storm's Path</h3>
-            <button class="close-modal" aria-label="Close Map"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
-        </div>
+    <div id="mapModal" class="modal map-modal-redesign">
+        <button class="close-modal" aria-label="Close Map">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        
         <div class="modal-layout">
             <div class="modal-map-container" id="pan-container">
-                <img class="modal-full-img" id="fullMapImg" src="Assets/mapfull.webp" alt="Full Geography Audit Map">
-                <div class="zoom-hint">Click image to zoom in/out</div>
+                <img class="modal-full-img" id="fullMapImg" src="Assets/mapfull.jpg" alt="Full Geography Audit Map">
             </div>
+            
+            <div class="zoom-hint">Click & Drag to pan · Scroll to zoom</div>
+
             <div class="modal-sidebar">
-                <div class="drag-handle-pill"></div>
+                <div class="drag-handle-pill mobile-only"></div>
                 <div class="sidebar-title-row">
                     <h4 class="sidebar-title">Timeline of Destruction</h4>
                 </div>
                 <div class="sidebar-content-wrapper" id="minimizableContent">
                     
-                    <div class="sidebar-item">
+                    <div class="sidebar-item" data-map-phase="01">
                         <span class="phase-kicker">Phase 01</span>
                         <h5 class="phase-title">Coastal Flooding</h5>
                         <p>Waves buried the coast. Roads and bridges went under within an hour.</p>
                         <div class="impact-tag">4 HOURS — Time before the main coastal road became impassable</div>
                     </div>
                     
-                    <div class="sidebar-item">
+                    <div class="sidebar-item" data-map-phase="02">
                         <span class="phase-kicker">Phase 02</span>
                         <h5 class="phase-title">Mountain Landslides</h5>
                         <p>Relentless rain broke the highlands apart. Mountain towns were completely sealed off.</p>
                         <div class="impact-tag">23 villages — cut off with zero road access</div>
                     </div>
                     
-                    <div class="sidebar-item">
+                    <div class="sidebar-item" data-map-phase="03">
                         <span class="phase-kicker">Phase 03</span>
                         <h5 class="phase-title">Northern Farm Floods</h5>
                         <p>The storm pushed north and erased entire crop fields — days before harvest.</p>
                         <div class="impact-tag">$340M — estimated damage to crops and farms overnight</div>
                     </div>
-
                 </div>
+                
+                <div class="sidebar-nav-buttons" style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(19,17,16,0.1);">
+                    <button id="modal-prev-btn" style="background:transparent; border:none; font-family:var(--font-ui); font-size:12px; font-weight:700; text-transform:uppercase; cursor:pointer; color:var(--dust);">&larr; Prev</button>
+                    <button id="modal-next-btn" style="background:transparent; border:none; font-family:var(--font-ui); font-size:12px; font-weight:700; text-transform:uppercase; cursor:pointer; color:var(--ink);">Next &rarr;</button>
+                </div>
+
             </div>
         </div>
     </div>
@@ -642,5 +913,52 @@
     <button id="backToTop" class="back-to-top" aria-label="Back to top"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
 
     <script src="script.js"></script>
+    
+    <script>
+        window.addEventListener('load', () => {
+            // Fix 2: Auto-dismiss banner after 12 seconds
+            const banner = document.getElementById('desktop-warning-banner');
+            if (banner) {
+                setTimeout(() => {
+                    banner.style.transition = 'opacity 0.8s ease';
+                    banner.style.opacity = '0';
+                    setTimeout(() => {
+                        banner.style.display = 'none';
+                    }, 800); // remove after fade completes
+                }, 12000);
+            }
+
+            // P5.js Rain rendering with increased opacity
+            if (window.heroP5) { 
+                window.heroP5.remove(); 
+            }
+            document.getElementById('hero-canvas-updated').innerHTML = '';
+            
+            new p5((p) => {
+                let lines = [];
+                p.setup = () => {
+                    let canvas = p.createCanvas(window.innerWidth, window.innerHeight);
+                    canvas.parent('hero-canvas-updated');
+                    for(let i=0; i<45; i++) {
+                        lines.push({x: p.random(p.width), y: p.random(p.height), speed: p.random(3, 7), len: p.random(15, 35)});
+                    }
+                };
+                p.draw = () => {
+                    p.clear();
+                    
+                    p.stroke('rgba(19,17,16,0.11)');
+                    p.strokeWeight(1);
+                    
+                    lines.forEach(l => {
+                        p.line(l.x, l.y, l.x + l.len*0.15, l.y + l.len);
+                        l.y += l.speed;
+                        l.x += l.speed*0.15;
+                        if(l.y > p.height) { l.y = -l.len; l.x = p.random(p.width); }
+                    });
+                };
+                p.windowResized = () => p.resizeCanvas(window.innerWidth, window.innerHeight);
+            });
+        });
+    </script>
 </body>
 </html>
