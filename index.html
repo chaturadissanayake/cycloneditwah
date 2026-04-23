@@ -4,122 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cyclone Ditwah: The Storm That Broke Sri Lanka</title>
+    <meta name="description" content="A data journalism investigation into how Cyclone Ditwah destroyed roads, homes, and lives across Sri Lanka — and where the recovery effort fell short.">
+    <meta property="og:title" content="How a Single Storm Broke Sri Lanka">
+    <meta property="og:description" content="A data investigation into Cyclone Ditwah's destruction and the recovery that stalled.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://cyclone-ditwah-report.com">
+    <meta property="og:image" content="https://cyclone-ditwah-report.com/Assets/heroimagemobileleft.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="How a Single Storm Broke Sri Lanka">
+    <meta name="twitter:description" content="A data investigation into Cyclone Ditwah's destruction and the recovery that stalled.">
+    <meta name="twitter:image" content="https://cyclone-ditwah-report.com/Assets/heroimagemobileleft.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="Assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="Assets/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="Assets/apple-touch-icon.png">
+    <link rel="icon" href="Assets/favicon.ico" sizes="any">
+    <link rel="canonical" href="https://cyclone-ditwah-report.com">
+    
     <link rel="stylesheet" href="style.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700;1,9..144,900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     
     <style>
         /* Hero Liveliness & Layout Fixes */
-        @keyframes subtleFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-12px); }
-        }
         .hero-img-float {
             animation: subtleFloat 6s ease-in-out infinite;
             transform-origin: center bottom;
-        }
-        
-        @keyframes hero-nudge {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(4px); }
-        }
-
-        .scroll-text-pulse {
-            font-family: var(--font-ui); font-size: 10px; font-weight: 700; 
-            text-transform: uppercase; letter-spacing: 0.2em; color: var(--ink);
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            opacity: 1 !important; 
-        }
-
-        /* Minimal Vertical Line Animation */
-        .scroll-line-indicator {
-            width: 1px;
-            height: 40px;
-            background: linear-gradient(to bottom, rgba(19,17,16,0.5), rgba(19,17,16,0));
-            margin: 6px auto 0 auto;
-            animation: lineGrow 2s ease-in-out infinite;
-            transform-origin: top center;
-        }
-
-        @keyframes lineGrow {
-            0%, 100% { transform: scaleY(0.4); opacity: 0.3; }
-            50% { transform: scaleY(1); opacity: 0.8; }
-        }
-        
-        .hero-flex-layout {
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            min-height: 100svh; padding: 60px 20px 40px 20px; position: relative; overflow: hidden;
-        }
-        .scroll-indicator-wrapper {
-            margin-top: 6vh; z-index: 2; position: relative;
-        }
-
-        /* Pure Flat Informational Banner - Full Width Fix */
-        #desktop-warning-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            max-width: 100vw;
-            box-sizing: border-box; /* Prevents horizontal scroll from padding */
-            border-radius: 0; /* no curves at all */
-            background: #131110;
-            color: #F6F3EC;
-            padding: 12px 24px;
-            text-align: center;
-            font-family: var(--font-ui);
-            font-size: 12px;
-            font-weight: 500;
-            line-height: 1.5;
-            letter-spacing: 0.02em;
-            box-shadow: none;
-            border: none;
-            z-index: 10000;
-            display: none; /* shown only on mobile via JS */
-            transform: none !important; /* remove any translations causing off-center */
-            margin: 0 !important;
-        }
-        
-        /* Remove the dismiss button entirely on mobile */
-        #dismiss-banner {
-            display: none !important;
-        }
-
-        /* Premium Map Modal Redesign (No Scrollbars) */
-        .map-modal-redesign .modal-layout {
-            display: block; position: relative; width: 100%; height: 100svh; padding-top: 0;
-        }
-        .map-modal-redesign .modal-header { display: none !important; }
-        
-        .map-modal-redesign .close-modal {
-            position: absolute; top: 24px; right: 24px; z-index: 100;
-            background: transparent; width: auto; height: auto; border-radius: 0;
-            box-shadow: none; display: flex; align-items: center; justify-content: center;
-            border: none; color: var(--ink); padding: 8px; cursor: pointer; transition: opacity 0.2s;
-        }
-        .map-modal-redesign .close-modal:hover { background: transparent; opacity: 0.6; }
-
-        .map-modal-redesign .modal-map-container {
-            width: 100%; height: 100%; padding: 0; background: var(--paper-mid);
-            overflow: auto; scrollbar-width: none; -ms-overflow-style: none;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .map-modal-redesign .modal-map-container::-webkit-scrollbar { display: none; }
-        
-        .map-modal-redesign .modal-sidebar {
-            position: absolute; top: 24px; left: 24px; width: 380px; height: auto; max-height: calc(100vh - 48px);
-            background: rgba(246, 243, 236, 0.85); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border-radius: 20px; border: 1px solid rgba(19, 17, 16, 0.08);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.12); padding: 32px;
-            display: flex; flex-direction: column; transform: none; margin: 0;
-        }
-        .map-modal-redesign .zoom-hint {
-            position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
-            background: var(--ink); color: var(--paper); padding: 12px 24px; border-radius: 40px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2); font-family: var(--font-ui); font-size: 11px;
-            font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; pointer-events: none;
         }
 
         /* =========================================
@@ -129,7 +44,7 @@
             
             /* Text-Only Cinematic Hero */
             .hero-flex-layout {
-                padding-top: 80px; /* clears the flat banner */
+                padding-top: 80px; 
                 padding-bottom: 48px;
                 min-height: 100svh;
                 display: flex;
@@ -190,7 +105,7 @@
             .mobile-hero-image-reveal {
                 width: 100vw;
                 height: auto;
-                min-height: 85vh;
+                min-height: 68vh;
                 overflow: hidden;
                 position: relative;
                 display: flex;
@@ -201,7 +116,7 @@
             }
             .mobile-hero-image-reveal img {
                 width: 100%;
-                height: 80vh;
+                height: 65vh;
                 object-fit: contain;
                 object-position: center center;
                 display: block;
@@ -222,14 +137,6 @@
                 color: var(--dust);
                 opacity: 0.7;
             }
-
-            /* Map Modal overwrites */
-            .map-modal-redesign .modal-sidebar {
-                top: auto; left: 0; bottom: 0; width: 100%; border-radius: 24px 24px 0 0;
-                padding: 24px 24px 40px 24px; max-height: 65vh; border: none; border-top: 1px solid rgba(19,17,16,0.1);
-            }
-            .map-modal-redesign .close-modal { top: 16px; right: 16px; width: auto; height: auto; }
-            .map-modal-redesign .zoom-hint { display: none; }
         }
     </style>
 </head>
@@ -253,13 +160,13 @@
 
     <header class="hero hero-flex-layout">
         
-        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;">
-            <div id="hero-canvas-updated" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none;"></div>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden;">
+            <div id="hero-canvas-updated" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; overflow: hidden;"></div>
         </div>
         
         <div class="desktop-only" style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 1920px; height: 100%; z-index: 0; pointer-events: none;">
             <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
-                <img src="Assets/desktopwb.png" class="hero-img-float" alt="" style="width: 100%; height: 100%; object-fit: contain; background: transparent; border: none; box-shadow: none;">
+                <img src="Assets/desktopwb.png" class="hero-img-float" loading="lazy" alt="" width="1920" height="1080" style="width: 100%; height: 100%; object-fit: contain; background: transparent; border: none; box-shadow: none;">
             </div>
         </div>
 
@@ -281,8 +188,9 @@
             </div>
         </div>
 
-        <div class="mobile-only hero-mobile-img-wrapper">
-            <img src="Assets/heroimagemobileleft.png" alt="Man holding a dog in floodwaters">
+        <div class="mobile-only hero-mobile-img-wrapper" style="position: relative; overflow: hidden;">
+            <div class="mobile-rain-overlay" aria-hidden="true"></div>
+            <img src="Assets/heroimagemobileleft.png" alt="Man holding a dog in floodwaters" width="800" height="600">
         </div>
 
         <div class="scroll-indicator-wrapper fade-up text-center">
@@ -293,8 +201,8 @@
         </div>
     </header>
 
-    <section class="mobile-hero-image-reveal mobile-only">
-        <img src="Assets/heroimagemobileleft.png" alt="Man carrying dog through floodwater">
+    <section class="mobile-hero-image-reveal mobile-only" style="position: relative; overflow: hidden;">
+        <img src="Assets/heroimagemobileleft.png" alt="Man carrying dog through floodwater" width="800" height="600">
         <div class="image-continue-cue fade-up">
             <span>The story continues below</span>
             <div class="scroll-line-indicator"></div>
@@ -303,7 +211,7 @@
 
     <main class="story-flow">
         
-        <section class="story-section" style="margin-top: 40px;">
+        <section class="story-section">
             <div class="reading-lane fade-up" id="intro-lane">
                 <p class="dropcap">On November 28, 2025, Cyclone Ditwah hit the eastern coast with winds over 120km/h. Power and water systems failed within four hours of the storm hitting the land. Soon after, roads and bridges washed away, leaving nearly 4 million people cut off from help.</p>
                 <p>Early reports missed the true scale of the disaster, especially in the central mountains where entire towns were cut off. This report looks at the hard data behind the destruction and tracks what happened to the people left behind in the months that followed.</p>
@@ -449,11 +357,11 @@
             <div class="stage-lane fade-up mt-large">
                 <div class="comparison-slider-wrapper" id="comparison-slider">
                     <div class="img-layer after-img">
-                        <img src="Assets/ditwahafter.png" alt="Landscape permanently altered by mudslide" loading="lazy">
+                        <img src="Assets/ditwahafter.png" alt="Landscape permanently altered by mudslide" loading="lazy" width="900" height="599">
                         <div class="slider-label label-after">AFTER</div>
                     </div>
                     <div class="img-layer before-img" id="before-layer">
-                        <img src="Assets/ditwahbefore.png" alt="Intact village before the storm" loading="lazy">
+                        <img src="Assets/ditwahbefore.png" alt="Intact village before the storm" loading="lazy" width="900" height="599">
                         <div class="slider-label label-before">BEFORE</div>
                     </div>
                     <div class="minimal-handle" id="handle" role="slider" aria-valuenow="50">
@@ -465,7 +373,7 @@
                 </div>
                 <div class="stage-annotation text-center">
                     <span class="interaction-hint" style="margin-bottom: 12px;">
-                        <span>Drag handle to compare maps</span>
+                        <span class="desktop-only">Drag handle to compare maps</span><span class="mobile-only">Swipe to compare maps</span>
                     </span>
                     <p style="font-family: var(--font-ui); font-size: 11px; color: var(--dust); margin-top: 0;">Note: Maps showing changes to the land.</p>
                 </div>
@@ -474,7 +382,7 @@
 
         <section class="story-section bg-alt">
             <div class="reading-lane fade-up">
-                <h2 class="subhead">How the Storm Unfolded</h2>
+                <h2 class="subhead">Timeline of Destruction</h2>
                 <p>The storm struck in three deadly waves. First, it flooded the southern coast. Next, it triggered massive landslides in the central mountains. Finally, as it moved north, it flooded huge farming areas, making it incredibly difficult for rescue teams to reach everyone.</p>
             </div>
 
@@ -490,7 +398,7 @@
                       <p class="storm-phase-desc">Huge waves crashed over the coast, completely covering main roads and bridges within an hour.</p>
                     </div>
                     <div class="storm-phase-visual">
-                      <img src="Assets/mapbottom.webp" alt="Phase 01 — Coastal Flooding Map" loading="lazy" class="storm-phase-img">
+                      <img src="Assets/mapbottom.webp" alt="Phase 01 — Coastal Flooding Map" loading="lazy" class="storm-phase-img" width="600" height="400">
                     </div>
                   </div>
 
@@ -502,7 +410,7 @@
                       <p class="storm-phase-desc">The storm stalled over the hills, pouring rain until the ground gave way, trapping mountain towns.</p>
                     </div>
                     <div class="storm-phase-visual">
-                      <img src="Assets/mapmiddle.webp" alt="Phase 02 — Mountain Landslides Map" loading="lazy" class="storm-phase-img">
+                      <img src="Assets/mapmiddle.webp" alt="Phase 02 — Mountain Landslides Map" loading="lazy" class="storm-phase-img" width="600" height="400">
                     </div>
                   </div>
 
@@ -514,33 +422,33 @@
                       <p class="storm-phase-desc">As the storm moved north, flash floods washed away fields of crops right before they were ready to be picked.</p>
                     </div>
                     <div class="storm-phase-visual">
-                      <img src="Assets/maptop.webp" alt="Phase 03 — Northern Farm Floods Map" loading="lazy" class="storm-phase-img">
+                      <img src="Assets/maptop.webp" alt="Phase 03 — Northern Farm Floods Map" loading="lazy" class="storm-phase-img" width="600" height="400">
                     </div>
                   </div>
 
                   <div class="map-controls" style="margin-top: 60px;">
-                    <button id="openMapBtnDesktop" class="btn-primary">
+                    <a href="map.html" class="btn-primary map-link" style="text-decoration: none;">
                       View Full Map
-                    </button>
+                    </a>
                   </div>
                 </div>
 
                 <div class="editorial-carousel-wrapper mobile-only" style="width: 100%;">
                     
                     <div class="text-center" style="margin: 0 auto 24px auto;">
-                        <span class="interaction-hint">Swipe maps to explore phases</span>
+                        <span class="interaction-hint">SWIPE MAPS TO EXPLORE PHASES</span>
                     </div>
 
                     <div class="editorial-carousel" id="mapCarousel">
                         
                         <div class="editorial-slide">
                             <div class="slide-img-container">
-                                <img src="Assets/mapbottom.webp" class="visual-asset" alt="Southern Landfall Map" loading="lazy">
+                                <img src="Assets/mapbottom.webp" class="visual-asset" alt="Southern Landfall Map" loading="lazy" width="1000" height="667">
                             </div>
                             <div class="editorial-caption">
                                 <div class="caption-left">
                                     <span class="phase-tag">Phase 01</span>
-                                    <h4 class="phase-title">Coastal<br>Flooding</h4>
+                                    <h4 class="phase-title">Coastal Flooding</h4>
                                 </div>
                                 <div class="caption-right">
                                     <p>Huge waves crashed over the coast, completely covering main roads and bridges within an hour.</p>
@@ -550,12 +458,12 @@
 
                         <div class="editorial-slide">
                             <div class="slide-img-container">
-                                <img src="Assets/mapmiddle.webp" class="visual-asset" alt="Central Highlands Map" loading="lazy">
+                                <img src="Assets/mapmiddle.webp" class="visual-asset" alt="Central Highlands Map" loading="lazy" width="1000" height="667">
                             </div>
                             <div class="editorial-caption">
                                 <div class="caption-left">
                                     <span class="phase-tag">Phase 02</span>
-                                    <h4 class="phase-title">Mountain<br>Landslides</h4>
+                                    <h4 class="phase-title">Mountain Landslides</h4>
                                 </div>
                                 <div class="caption-right">
                                     <p>The storm stalled over the hills, pouring rain until the ground gave way, trapping mountain towns.</p>
@@ -565,12 +473,12 @@
 
                         <div class="editorial-slide">
                             <div class="slide-img-container">
-                                <img src="Assets/maptop.webp" class="visual-asset" alt="Northern Exit Map" loading="lazy">
+                                <img src="Assets/maptop.webp" class="visual-asset" alt="Northern Exit Map" loading="lazy" width="1000" height="667">
                             </div>
                             <div class="editorial-caption">
                                 <div class="caption-left">
                                     <span class="phase-tag">Phase 03</span>
-                                    <h4 class="phase-title">Northern Farm<br>Floods</h4>
+                                    <h4 class="phase-title">Northern Farm Floods</h4>
                                 </div>
                                 <div class="caption-right">
                                     <p>As the storm moved north, flash floods washed away fields of crops right before they were ready to be picked.</p>
@@ -587,9 +495,9 @@
                     </div>
 
                     <div class="map-controls">
-                        <button id="openMapBtnMobile" class="btn-primary">
+                        <a href="map.html" class="btn-primary map-link" style="text-decoration: none;">
                             View Full Map
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -693,7 +601,7 @@
             <div class="fade-up" style="max-width: 1200px; margin: 40px auto 0 auto; width: 100%;">
                 <picture>
                     <source media="(max-width: 768px)" srcset="Assets/farmermobile.png">
-                    <img src="Assets/farmer.png" alt="Destroyed crops and farmers affected" loading="lazy" style="width: 100%; height: auto; display: block; margin: 0 auto; background: transparent; border: none; box-shadow: none; outline: none;">
+                    <img src="Assets/farmer.png" alt="Destroyed crops and farmers affected" loading="lazy" width="1200" height="800" style="width: 100%; height: auto; display: block; margin: 0 auto; background: transparent; border: none; box-shadow: none; outline: none;">
                 </picture>
             </div>
         </section>
@@ -807,13 +715,56 @@
         </section>
 
         <section class="share-section reading-lane fade-up">
-            <span class="share-title">Share this story</span>
-            <div class="share-line"></div>
-            <div class="share-icons">
-                <a href="#" aria-label="Share on X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg></a>
-                <a href="#" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+            <div class="share-row">
+                <span class="share-title">Share this story</span>
+                <div class="share-line"></div>
+                <div class="share-icons">
+                    <a href="https://twitter.com/intent/tweet?text=How+a+Single+Storm+Broke+Sri+Lanka&url=https://cyclone-ditwah-report.com" target="_blank" rel="noopener" aria-label="Share on X"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg></a>
+                    <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://cyclone-ditwah-report.com" target="_blank" rel="noopener" aria-label="Share on LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+                </div>
+            </div>
+
+            <div class="support-row" style="display: flex; justify-content: center; width: 100%;">
+                <a href="https://buymeacoffee.com/chatura" target="_blank" rel="noopener" aria-label="Support this work on Buy Me a Coffee" class="bmc-logo-link">
+                    <img src="Assets/bmc-brand-logo.svg" alt="Buy Me a Coffee" width="195" height="40">
+                </a>
             </div>
         </section>
+
+    <div class="cite-section text-center">
+        <div class="container" style="display: flex; flex-direction: column; align-items: center;">
+            <h3 class="cite-heading text-center" style="text-align: center;">Cite This Work</h3>
+            
+            <div class="cite-tabs" style="justify-content: center;">
+                <button class="cite-tab active" data-target="panel-apa">APA</button>
+                <button class="cite-tab" data-target="panel-journalistic">Journalistic</button>
+                <button class="cite-tab" data-target="panel-bibtex">BibTeX</button>
+            </div>
+            
+            <div class="cite-panels-container" style="text-align: left; width: 100%; max-width: 760px;">
+                <div class="cite-panel-content active" id="panel-apa">
+                    <p class="cite-text" id="cite-apa">Dissanayake, C., &amp; Nillekumbura, I. (2026). How a Single Storm Broke Sri Lanka [Data Story]. Retrieved from https://chaturadissanayake.github.io/cyclone-ditwah/</p>
+                    <button class="cite-copy" data-target="cite-apa">Copy</button>
+                </div>
+
+                <div class="cite-panel-content" id="panel-journalistic">
+                    <p class="cite-text" id="cite-journalistic">Chatura Dissanayake and Imali Nillekumbura. (2026). How a Single Storm Broke Sri Lanka. Retrieved from https://chaturadissanayake.github.io/cyclone-ditwah/</p>
+                    <button class="cite-copy" data-target="cite-journalistic">Copy</button>
+                </div>
+
+                <div class="cite-panel-content" id="panel-bibtex">
+                    <pre class="cite-text cite-code" id="cite-bibtex">@article{dissanayake-cyclone-ditwah-2026,
+  title  = {How a Single Storm Broke Sri Lanka},
+  author = {Dissanayake, Chatura and Nillekumbura, Imali},
+  year   = {2026},
+  journal = {Data Story},
+  url    = {https://chaturadissanayake.github.io/cyclone-ditwah/}
+}</pre>
+                    <button class="cite-copy" data-target="cite-bibtex">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     </main>
 
@@ -851,56 +802,6 @@
         </div>
     </footer>
 
-    <div id="mapModal" class="modal map-modal-redesign">
-        <button class="close-modal" aria-label="Close Map">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-        
-        <div class="modal-layout">
-            <div class="modal-map-container" id="pan-container">
-                <img class="modal-full-img" id="fullMapImg" src="Assets/mapfull.jpg" alt="Full Geography Audit Map">
-            </div>
-            
-            <div class="zoom-hint">Click & Drag to pan · Scroll to zoom</div>
-
-            <div class="modal-sidebar">
-                <div class="drag-handle-pill mobile-only"></div>
-                <div class="sidebar-title-row">
-                    <h4 class="sidebar-title">Timeline of Destruction</h4>
-                </div>
-                <div class="sidebar-content-wrapper" id="minimizableContent">
-                    
-                    <div class="sidebar-item" data-map-phase="01">
-                        <span class="phase-kicker">Phase 01</span>
-                        <h5 class="phase-title">Coastal Flooding</h5>
-                        <p>Waves buried the coast. Roads and bridges went under within an hour.</p>
-                        <div class="impact-tag">4 HOURS — Time before the main coastal road became impassable</div>
-                    </div>
-                    
-                    <div class="sidebar-item" data-map-phase="02">
-                        <span class="phase-kicker">Phase 02</span>
-                        <h5 class="phase-title">Mountain Landslides</h5>
-                        <p>Relentless rain broke the highlands apart. Mountain towns were completely sealed off.</p>
-                        <div class="impact-tag">23 villages — cut off with zero road access</div>
-                    </div>
-                    
-                    <div class="sidebar-item" data-map-phase="03">
-                        <span class="phase-kicker">Phase 03</span>
-                        <h5 class="phase-title">Northern Farm Floods</h5>
-                        <p>The storm pushed north and erased entire crop fields — days before harvest.</p>
-                        <div class="impact-tag">$340M — estimated damage to crops and farms overnight</div>
-                    </div>
-                </div>
-                
-                <div class="sidebar-nav-buttons" style="display: flex; justify-content: space-between; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(19,17,16,0.1);">
-                    <button id="modal-prev-btn" style="background:transparent; border:none; font-family:var(--font-ui); font-size:12px; font-weight:700; text-transform:uppercase; cursor:pointer; color:var(--dust);">&larr; Prev</button>
-                    <button id="modal-next-btn" style="background:transparent; border:none; font-family:var(--font-ui); font-size:12px; font-weight:700; text-transform:uppercase; cursor:pointer; color:var(--ink);">Next &rarr;</button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
     <div id="mobile-tap-sheet" class="mobile-tap-sheet" role="dialog" aria-modal="true">
       <div class="tap-sheet-handle-bar"></div>
       <div id="mobile-tap-sheet-content" class="tap-sheet-content"></div>
@@ -913,52 +814,5 @@
     <button id="backToTop" class="back-to-top" aria-label="Back to top"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg></button>
 
     <script src="script.js"></script>
-    
-    <script>
-        window.addEventListener('load', () => {
-            // Fix 2: Auto-dismiss banner after 12 seconds
-            const banner = document.getElementById('desktop-warning-banner');
-            if (banner) {
-                setTimeout(() => {
-                    banner.style.transition = 'opacity 0.8s ease';
-                    banner.style.opacity = '0';
-                    setTimeout(() => {
-                        banner.style.display = 'none';
-                    }, 800); // remove after fade completes
-                }, 12000);
-            }
-
-            // P5.js Rain rendering with increased opacity
-            if (window.heroP5) { 
-                window.heroP5.remove(); 
-            }
-            document.getElementById('hero-canvas-updated').innerHTML = '';
-            
-            new p5((p) => {
-                let lines = [];
-                p.setup = () => {
-                    let canvas = p.createCanvas(window.innerWidth, window.innerHeight);
-                    canvas.parent('hero-canvas-updated');
-                    for(let i=0; i<45; i++) {
-                        lines.push({x: p.random(p.width), y: p.random(p.height), speed: p.random(3, 7), len: p.random(15, 35)});
-                    }
-                };
-                p.draw = () => {
-                    p.clear();
-                    
-                    p.stroke('rgba(19,17,16,0.11)');
-                    p.strokeWeight(1);
-                    
-                    lines.forEach(l => {
-                        p.line(l.x, l.y, l.x + l.len*0.15, l.y + l.len);
-                        l.y += l.speed;
-                        l.x += l.speed*0.15;
-                        if(l.y > p.height) { l.y = -l.len; l.x = p.random(p.width); }
-                    });
-                };
-                p.windowResized = () => p.resizeCanvas(window.innerWidth, window.innerHeight);
-            });
-        });
-    </script>
 </body>
 </html>
