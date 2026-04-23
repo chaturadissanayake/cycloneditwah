@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,700;1,9..144,900&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Full Impact Map</title>
+    <style>
+        :root {
+            --ink: #131110;
+            --paper: #F6F3EC;
+            --crimson: #BF2D26;
+            --dust: #8C7C69;
+            --smoke: #C4BFB4;
+            --azure: #174875;
+            --font-head: 'Fraunces', serif;
+            --font-body: 'Source Serif 4', serif;
+            --font-ui: 'DM Sans', sans-serif;
+            --radius-md: 8px;
+            --radius-pill: 40px;
+            --shadow-md: 0 8px 24px rgba(19,17,16,0.10);
+            --shadow-lg: 0 15px 40px rgba(19,17,16,0.14);
+            --shadow-tooltip: 0 15px 35px -5px rgba(19,17,16,0.18);
+            --dur-fast: 180ms;
+            --ease-out: cubic-bezier(0.19, 1, 0.22, 1);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--paper);
+            touch-action: none;
+        }
+        
+        /* --- TOP BAR --- */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 56px;
+            background: var(--ink);
+            color: var(--paper);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            z-index: 2000;
+            box-sizing: border-box;
+        }
+
+        .top-bar-label {
+            font-family: var(--font-ui);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .btn-close {
+            border: 1px solid rgba(246, 243, 236, 0.3);
+            padding: 8px 24px;
+            font-family: var(--font-ui);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: transparent;
+            color: var(--paper);
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-close:hover {
+            background: rgba(246, 243, 236, 0.15);
+        }
+
+        /* --- MAP VIEWER --- */
+        .viewer-area {
+            position: absolute;
+            top: 56px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            overflow: hidden;
+            background: var(--paper);
+            cursor: grab;
+        }
+        .viewer-area.grabbing { cursor: grabbing; }
+
+        #map-container {
+            transform-origin: 0 0;
+            will-change: transform;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        #map-image {
+            display: block;
+            width: auto;
+            height: auto;
+            max-width: none;
+            pointer-events: none;
+        }
+
+        .spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--smoke);
+            border-top-color: var(--crimson);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 10;
+        }
+
+        /* --- TIMELINE OVERLAY --- */
+        .timeline-overlay {
+            position: absolute;
+            top: 80px;
+            left: 24px;
+            background: rgba(246, 243, 236, 0.95);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--smoke);
+            border-radius: var(--radius-md);
+            padding: 32px 24px;
+            z-index: 1500;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            box-shadow: var(--shadow-tooltip);
+            transition: transform 0.35s var(--ease-out), opacity 0.35s var(--ease-out);
+            box-sizing: border-box;
+            width: 360px;
+        }
+        .timeline-overlay.hidden {
+            transform: translateX(-120%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 16px;
+        }
+        .timeline-header h2 {
+            font-family: var(--font-head);
+            font-size: 22px;
+            font-weight: 900;
+            margin: 0;
+            color: var(--ink);
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+        .timeline-close-btn {
+            background: transparent;
+            color: var(--dust);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .timeline-close-btn:hover { color: var(--ink); }
+
+        .timeline-content {
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+            padding-right: 12px;
+        }
+        .timeline-content::-webkit-scrollbar { width: 4px; }
+        .timeline-content::-webkit-scrollbar-track { background: transparent; }
+        .timeline-content::-webkit-scrollbar-thumb { background: var(--smoke); border-radius: 4px; }
+
+        .t-phase { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+            padding: 20px 0;
+            border-bottom: 1px solid var(--smoke);
+        }
+        .t-phase:first-child { padding-top: 0; }
+        .t-phase:last-child { border-bottom: none; padding-bottom: 0; }
+
+        .t-tag { font-family: var(--font-ui); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.15em; color: var(--crimson); margin-bottom: 2px;}
+        .t-phase h3 { font-family: var(--font-head); font-size: 16px; margin: 0; color: var(--ink); }
+        .t-phase p { font-family: var(--font-body); font-size: 13px; margin: 6px 0 12px 0; color: var(--dust); line-height: 1.5; }
+        
+        .t-stat { 
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .t-highlight { font-family: var(--font-head); font-size: 16px; font-weight: 900; color: var(--crimson); line-height: 1;}
+        .t-text { font-family: var(--font-ui); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink); line-height: 1.4; }
+
+        /* --- VISIBLE TIMELINE BUTTON --- */
+        .show-timeline-btn {
+            position: absolute;
+            top: 80px;
+            left: 24px;
+            background: rgba(246, 243, 236, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: var(--ink);
+            border: 2px solid var(--ink);
+            border-radius: var(--radius-pill);
+            padding: 10px 20px;
+            font-family: var(--font-ui);
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            z-index: 1400;
+            transition: all var(--dur-fast) var(--ease-out);
+        }
+        .show-timeline-btn:hover { 
+            background: var(--ink); 
+            color: var(--paper); 
+            box-shadow: var(--shadow-md);
+        }
+        .show-timeline-btn.hidden { opacity: 0; pointer-events: none; }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* --- MOBILE --- */
+        @media (max-width: 768px) {
+            .top-bar { 
+                height: 56px; 
+                padding: 0 16px; 
+            }
+            .btn-close {
+                padding: 6px 16px;
+                font-size: 9px;
+            }
+            .viewer-area { top: 56px; }
+            
+            .show-timeline-btn {
+                top: auto;
+                bottom: 32px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: var(--ink);
+                color: var(--paper);
+                border: none;
+                padding: 14px 28px;
+                box-shadow: var(--shadow-md);
+            }
+            .show-timeline-btn:hover {
+                background: var(--azure);
+                transform: translate(-50%, -2px);
+                box-shadow: var(--shadow-lg);
+            }
+
+            .timeline-overlay {
+                top: auto;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                border-radius: 16px 16px 0 0;
+                border-bottom: none;
+                border-left: none;
+                border-right: none;
+                padding: 24px;
+            }
+            .timeline-overlay.hidden {
+                transform: translateY(100%);
+            }
+            .timeline-content {
+                max-height: 55vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="top-bar-label" id="map-label">Full Impact Map</div>
+        <button class="btn-close" id="btnClose">Back</button>
+    </div>
+
+    <button id="showTimelineBtn" class="show-timeline-btn hidden">View Timeline</button>
+
+    <div class="timeline-overlay" id="timelinePanel">
+        <div class="timeline-header">
+            <h2>Timeline of Destruction</h2>
+            <button id="hideTimelineBtn" class="timeline-close-btn" aria-label="Close Timeline">&times;</button>
+        </div>
+        <div class="timeline-content">
+            <div class="t-phase">
+                <span class="t-tag">Phase 01</span>
+                <h3>Coastal Flooding</h3>
+                <p>Waves buried the coast. Roads and bridges went under within an hour.</p>
+                <div class="t-stat">
+                    <span class="t-highlight">4 HOURS</span>
+                    <span class="t-text">Time before the main coastal road became impassable</span>
+                </div>
+            </div>
+            <div class="t-phase">
+                <span class="t-tag">Phase 02</span>
+                <h3>Mountain Landslides</h3>
+                <p>Relentless rain broke the highlands apart. Mountain towns were completely sealed off.</p>
+                <div class="t-stat">
+                    <span class="t-highlight">23 VILLAGES</span>
+                    <span class="t-text">Cut off with zero road access</span>
+                </div>
+            </div>
+            <div class="t-phase">
+                <span class="t-tag">Phase 03</span>
+                <h3>Northern Farm Floods</h3>
+                <p>The storm pushed north and erased entire crop fields — days before harvest.</p>
+                <div class="t-stat">
+                    <span class="t-highlight">$340M</span>
+                    <span class="t-text">Estimated damage to crops and farms overnight</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="viewer-area" id="viewer">
+        <div class="spinner" id="spinner"></div>
+        <div id="map-container">
+            <img src="Assets/fullmap.jpg" id="map-image" alt="Full Impact Map">
+        </div>
+    </div>
+
+    <script>
+        if (window.innerWidth <= 768) {
+            document.getElementById('map-label').textContent = 'Full Impact Map';
+        }
+
+        // ==========================================
+        // TIMELINE LOGIC
+        // ==========================================
+        const timelinePanel = document.getElementById('timelinePanel');
+        const showTimelineBtn = document.getElementById('showTimelineBtn');
+        const hideTimelineBtn = document.getElementById('hideTimelineBtn');
+
+        function openTimeline() {
+            timelinePanel.classList.remove('hidden');
+            showTimelineBtn.classList.add('hidden');
+        }
+
+        function closeTimelineUI() {
+            timelinePanel.classList.add('hidden');
+            showTimelineBtn.classList.remove('hidden');
+        }
+
+        showTimelineBtn.addEventListener('click', openTimeline);
+
+        hideTimelineBtn.addEventListener('click', () => {
+            closeTimelineUI();
+        });
+
+
+        // ==========================================
+        // MAP VIEWER LOGIC (COVER & PINCH/PAN ONLY)
+        // ==========================================
+        const viewer = document.getElementById('viewer');
+        const container = document.getElementById('map-container');
+        const img = document.getElementById('map-image');
+        const spinner = document.getElementById('spinner');
+
+        let baseScale = 1;
+        let currentZoom = 1;
+        let tx = 0, ty = 0;
+        let IMG_W = 0, IMG_H = 0;
+
+        function exitMap() {
+            const ret = sessionStorage.getItem('returnScroll');
+            if (ret) { sessionStorage.setItem('restoreScroll', ret); }
+            window.location.href = 'index.html';
+        }
+
+        document.getElementById('btnClose').addEventListener('click', exitMap);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') exitMap();
+            if (e.key === 'ArrowUp')    { ty += 40; updateTransform(); }
+            if (e.key === 'ArrowDown')  { ty -= 40; updateTransform(); }
+            if (e.key === 'ArrowLeft')  { tx += 40; updateTransform(); }
+            if (e.key === 'ArrowRight') { tx -= 40; updateTransform(); }
+        });
+
+        function initFit() {
+            if (!IMG_W || !IMG_H) return;
+            const vh = viewer.clientHeight;
+            const vw = viewer.clientWidth;
+            
+            // MATH.MAX ensures the map *always* covers the viewport, leaving no empty space.
+            baseScale = Math.max(vw / IMG_W, vh / IMG_H);
+            currentZoom = 1;
+            
+            const scaledW = IMG_W * baseScale;
+            const scaledH = IMG_H * baseScale;
+            
+            // Center the initial view
+            tx = (vw - scaledW) / 2;
+            ty = (vh - scaledH) / 2;
+            
+            updateTransform();
+        }
+
+        function updateTransform() {
+            const s = baseScale * currentZoom;
+            const scaledW = IMG_W * s;
+            const scaledH = IMG_H * s;
+            const vw = viewer.clientWidth;
+            const vh = viewer.clientHeight;
+
+            // STRICT CLAMPING: Prevents panning outside the image bounds
+            tx = Math.max(vw - scaledW, Math.min(0, tx));
+            ty = Math.max(vh - scaledH, Math.min(0, ty));
+
+            container.style.transform = `translate(${tx}px, ${ty}px) scale(${s})`;
+        }
+
+        function setZoom(newZoom, cx, cy) {
+            if (cx === undefined) cx = viewer.clientWidth / 2;
+            if (cy === undefined) cy = viewer.clientHeight / 2;
+            
+            // HARD LIMIT: Minimum zoom is exactly 1.0 to prevent blank space
+            newZoom = Math.max(1, Math.min(newZoom, 5));
+            
+            if (newZoom === currentZoom) return;
+            
+            const factor = newZoom / currentZoom;
+            tx = cx - (cx - tx) * factor;
+            ty = cy - (cy - ty) * factor;
+            currentZoom = newZoom;
+            updateTransform();
+        }
+
+        function onImageReady() {
+            IMG_W = img.naturalWidth;
+            IMG_H = img.naturalHeight;
+            spinner.style.display = 'none';
+            initFit();
+        }
+
+        if (img.complete && img.naturalWidth > 0) {
+            onImageReady();
+        } else {
+            img.onload = onImageReady;
+            img.onerror = () => { spinner.style.display = 'none'; };
+        }
+
+        window.addEventListener('resize', initFit);
+
+        // Desktop mouse drag
+        let isDragging = false, startX, startY, initialTx, initialTy;
+
+        viewer.addEventListener('mousedown', e => {
+            if(e.target.closest('#timelinePanel') || e.target.closest('#showTimelineBtn')) return;
+            
+            isDragging = true;
+            startX = e.clientX; startY = e.clientY;
+            initialTx = tx; initialTy = ty;
+            viewer.classList.add('grabbing');
+            e.preventDefault();
+        });
+        window.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            tx = initialTx + (e.clientX - startX);
+            ty = initialTy + (e.clientY - startY);
+            updateTransform();
+        });
+        window.addEventListener('mouseup', () => { isDragging = false; viewer.classList.remove('grabbing'); });
+
+        // Mouse wheel zoom
+        viewer.addEventListener('wheel', e => {
+            if(e.target.closest('#timelinePanel')) return; 
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.15 : 0.15;
+            const rect = viewer.getBoundingClientRect();
+            setZoom(currentZoom + delta, e.clientX - rect.left, e.clientY - rect.top);
+        }, { passive: false });
+
+        // Mobile touch — pan and pinch
+        let pinchDist0 = null, pinchZoom0 = null, pinchCx = 0, pinchCy = 0;
+
+        viewer.addEventListener('touchstart', e => {
+            if(e.target.closest('#timelinePanel') || e.target.closest('#showTimelineBtn')) return; 
+            e.preventDefault(); 
+            
+            if (e.touches.length === 1) {
+                isDragging = true;
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                initialTx = tx; initialTy = ty;
+                pinchDist0 = null;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                pinchDist0 = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                pinchZoom0 = currentZoom;
+                const rect = viewer.getBoundingClientRect();
+                pinchCx = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+                pinchCy = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+            }
+        }, { passive: false });
+
+        viewer.addEventListener('touchmove', e => {
+            if(e.target.closest('#timelinePanel') || e.target.closest('#showTimelineBtn')) return; 
+            e.preventDefault();
+            
+            if (isDragging && e.touches.length === 1) {
+                tx = initialTx + (e.touches[0].clientX - startX);
+                ty = initialTy + (e.touches[0].clientY - startY);
+                updateTransform();
+            } else if (e.touches.length === 2 && pinchDist0) {
+                const d = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                setZoom(pinchZoom0 * (d / pinchDist0), pinchCx, pinchCy);
+            }
+        }, { passive: false });
+
+        viewer.addEventListener('touchend', e => {
+            if (e.touches.length < 2) pinchDist0 = null;
+            if (e.touches.length === 0) isDragging = false;
+        });
+    </script>
+</body>
+</html>
