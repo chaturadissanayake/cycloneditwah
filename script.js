@@ -992,20 +992,26 @@ document.addEventListener("DOMContentLoaded", () => {
     ];
     const month3Settings = { spacing: 14.1, startIndex: 1, scale: 0.11, angle: 137.508 * (Math.PI / 180) };
 
-    if (document.getElementById('canvas-day1')) {
-        new p5(createSpiralSketch('canvas-day1', day1Data, day1Settings, 'Day 01 Impact'), 'canvas-day1');
-        new p5(createSpiralSketch('canvas-month3', month3Data, month3Settings, '3 Months Later'), 'canvas-month3');
-    }
-
+    let day1Sketch, month3Sketch;
     const spiralFadeElements = document.querySelectorAll('.canvas-wrapper');
-    const chartObserver = new IntersectionObserver((entries) => {
+    
+    const chartObserver = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('fade-in-visible');
-                chartObserver.unobserve(entry.target);
+                
+                // Only execute heavy P5 math when scrolled into view
+                if (entry.target.id === 'canvas-day1' && !day1Sketch) {
+                    day1Sketch = new p5(createSpiralSketch('canvas-day1', day1Data, day1Settings, 'Day 01 Impact'), 'canvas-day1');
+                }
+                if (entry.target.id === 'canvas-month3' && !month3Sketch) {
+                    month3Sketch = new p5(createSpiralSketch('canvas-month3', month3Data, month3Settings, '3 Months Later'), 'canvas-month3');
+                }
+                
+                obs.unobserve(entry.target);
             }
         });
-    }, { threshold: 0.35 });
+    }, { threshold: 0.25 });
     
     if(document.getElementById('canvas-day1')) chartObserver.observe(document.getElementById('canvas-day1'));
     if(document.getElementById('canvas-month3')) chartObserver.observe(document.getElementById('canvas-month3'));
