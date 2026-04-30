@@ -36,12 +36,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (citeTabs.length > 0) {
         citeTabs.forEach(tab => {
             tab.addEventListener('click', () => {
-                // Remove active class from all tabs and panels
-                citeTabs.forEach(t => t.classList.remove('active'));
+                // Remove active class & ARIA state from all tabs and panels
+                citeTabs.forEach(t => {
+                    t.classList.remove('active');
+                    t.setAttribute('aria-selected', 'false');
+                });
                 citePanels.forEach(p => p.classList.remove('active'));
 
-                // Add active class to clicked tab
+                // Add active class & ARIA state to clicked tab
                 tab.classList.add('active');
+                tab.setAttribute('aria-selected', 'true');
                 
                 // Add active class to corresponding panel
                 const targetId = tab.getAttribute('data-target');
@@ -79,19 +83,12 @@ document.addEventListener("DOMContentLoaded", () => {
         if (banner) {
             if (window.innerWidth < 1024) { 
                 banner.style.display = 'flex'; 
-                // Auto-dismiss banner after 12 seconds on mobile
-                setTimeout(() => {
-                    banner.style.transition = 'opacity 0.8s ease';
-                    banner.style.opacity = '0';
-                    setTimeout(() => {
-                        banner.style.display = 'none';
-                    }, 800);
-                }, 12000);
+                // Auto-dismiss removed for accessibility compliance
             }
         }
     };
     checkBannerVisibility();
-    window.addEventListener('resize', () => checkBannerVisibility());
+    window.addEventListener('resize', debounce(() => checkBannerVisibility(), 250));
 
     const dismissBtn = document.getElementById('dismiss-banner');
     if (dismissBtn) {
@@ -265,6 +262,19 @@ document.addEventListener("DOMContentLoaded", () => {
         slider.addEventListener('touchstart', () => { isDraggingSlider = true; }, { passive: true });
         window.addEventListener('touchmove', (e) => { if (isDraggingSlider) onMove(e); }, { passive: true });
         window.addEventListener('touchend', () => { isDraggingSlider = false; }, { passive: true });
+
+        // Keyboard Accessibility for Slider
+        let sliderPercent = 50;
+        handle.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                sliderPercent += (e.key === 'ArrowRight') ? 5 : -5;
+                sliderPercent = Math.max(0, Math.min(100, sliderPercent));
+                beforeLayer.style.width = sliderPercent + "%";
+                handle.style.left = sliderPercent + "%";
+                handle.setAttribute('aria-valuenow', sliderPercent);
+            }
+        });
     }
 
     // =========================================
@@ -315,8 +325,14 @@ document.addEventListener("DOMContentLoaded", () => {
         let x = clientX + 16;
         let y = clientY + 16;
         const ttRect = siteTooltip.getBoundingClientRect();
+        
         if (x + ttRect.width > window.innerWidth - 8) { x = clientX - ttRect.width - 16; }
         if (y + ttRect.height > window.innerHeight - 8) { y = clientY - ttRect.height - 16; }
+        
+        // Final safety clamp so it never bleeds off the top/left edge on very narrow screens
+        x = Math.max(8, x);
+        y = Math.max(8, y);
+
         siteTooltip.style.left = x + "px";
         siteTooltip.style.top = y + "px";
     }
@@ -990,7 +1006,4 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if(document.getElementById('canvas-day1')) chartObserver.observe(document.getElementById('canvas-day1'));
     if(document.getElementById('canvas-month3')) chartObserver.observe(document.getElementById('canvas-month3'));
-    
-    // Calculate markers immediately on load instead of waiting for resize/window load
-    calculateChapterMarkers();
 });
