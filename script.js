@@ -380,7 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // =========================================
     // CHART 1: ECONOMIC INFRASTRUCTURE BREAKDOWN
     // =========================================
-    (() => {
+    const initChart1 = () => {
         const data = [
             { label: "Roads & Water",  val: 1735000000, share: "42%", detail: "Roads, bridges, and water networks.", color: "var(--ink)" },
             { label: "Homes",          val:  985000000, share: "24%", detail: "Houses and lost belongings.", color: "var(--ink)" },
@@ -474,12 +474,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 svg.querySelectorAll('.head').forEach(el => { gsap.to(el, { attr: { cx: el.getAttribute('data-target-cx') }, duration: 1.5, ease: "power2.out" }); });
             }
         });
-    })();
+    };
 
     // =========================================
     // CHART 2: ARC (Displacement)
     // =========================================
-    (() => {
+    const initChart2 = () => {
         const data = [
             { d: "Nov 29", sc: 120000, hf: 0 },
             { d: "Nov 30", sc: 180499, hf: 0 },
@@ -597,12 +597,12 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         
         window.addEventListener('clearCharts', () => { tracker.style.visibility = "hidden"; });
-    })();
+    };
 
     // =========================================
     // CHART 3: MATRIX (Schools)
     // =========================================
-    (() => {
+    const initChart3 = () => {
         const canvas = document.getElementById('matrix-canvas');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -724,7 +724,7 @@ document.addEventListener("DOMContentLoaded", () => {
         window.addEventListener('resize', debounce(init, 250));
         
         setTimeout(init, 100);
-    })();
+    };
 
     // =========================================
     // CHART 4: FUNDING VESSEL
@@ -1009,4 +1009,20 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if(document.getElementById('canvas-day1')) chartObserver.observe(document.getElementById('canvas-day1'));
     if(document.getElementById('canvas-month3')) chartObserver.observe(document.getElementById('canvas-month3'));
+
+    // Global Observer for Heavy Charts
+    const heavyChartObserver = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                if (entry.target.id === 'sect-infra') initChart1();
+                if (entry.target.id === 'sect-arc') initChart2();
+                if (entry.target.id === 'sect-matrix') initChart3();
+                obs.unobserve(entry.target);
+            }
+        });
+    }, { rootMargin: '400px 0px' });
+
+    if(document.getElementById('sect-infra')) heavyChartObserver.observe(document.getElementById('sect-infra'));
+    if(document.getElementById('sect-arc')) heavyChartObserver.observe(document.getElementById('sect-arc'));
+    if(document.getElementById('sect-matrix')) heavyChartObserver.observe(document.getElementById('sect-matrix'));
 });
