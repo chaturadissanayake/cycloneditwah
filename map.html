@@ -86,8 +86,34 @@
             right: 0;
             bottom: 0;
             overflow: hidden;
-            background: var(--paper);
+            background: var(--paper-mid); /* Acts as skeleton loading state */
             cursor: grab;
+        }
+        .map-hint-overlay {
+            position: absolute;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(19, 17, 16, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            color: var(--paper);
+            padding: 8px 24px;
+            border-radius: var(--radius-pill);
+            font-family: var(--font-ui);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 1000;
+            animation: hintFade 4.5s ease-in-out forwards;
+            opacity: 0;
+        }
+        @keyframes hintFade {
+            0%, 100% { opacity: 0; }
+            15%, 85% { opacity: 1; }
         }
         .viewer-area.grabbing { cursor: grabbing; }
 
@@ -167,9 +193,10 @@
             background: transparent;
             color: var(--dust);
             border: none;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
-            padding: 0;
+            padding: 8px;
+            margin: -8px;
             line-height: 1;
             transition: color 0.2s;
         }
@@ -249,6 +276,10 @@
             .btn-close {
                 padding: 6px 16px;
                 font-size: 9px;
+            }
+            .map-hint-overlay {
+                font-size: 9px;
+                padding: 6px 16px;
             }
             .viewer-area { top: 56px; }
             
@@ -335,6 +366,7 @@
     </div>
 
     <div class="viewer-area" id="viewer">
+        <div class="map-hint-overlay">Drag to Pan · Pinch to Zoom</div>
         <div class="spinner" id="spinner"></div>
         <div id="map-container">
             <img src="Assets/fullmap.webp" id="map-image" alt="Full Impact Map">
