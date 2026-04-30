@@ -494,7 +494,10 @@ document.addEventListener("DOMContentLoaded", () => {
             { d: "Jan 23", sc: 7100,   hf: 170000 },
             { d: "Feb 06", sc: 6680,   hf: 165000 },
             { d: "Feb 20", sc: 3400,   hf: 155000 },
-            { d: "Mar 06", sc: 149927, hf: 153000, note: "Floods Return" }
+            { d: "Mar 06", sc: 2700,   hf: 153000 },
+            { d: "Mar 20", sc: 2700,   hf: 149000 },
+            { d: "Apr 03", sc: 2274,   hf: 149000 },
+            { d: "Apr 17", sc: 1404,   hf: 149000, note: "Latest Report" }
         ];
 
         const svg = document.getElementById('main-chart');
@@ -746,7 +749,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <span class="tt-val-red"><strong>$12.8M</strong> Still Needed</span>
                         </div>
                         <div class="tt-desc" style="margin-top: 12px; border-top: 1px solid rgba(19, 17, 16, 0.1); padding-top: 12px;">
-                            Aid froze in February — the fund grew by less than $100K in its final two months.
+                            Aid froze in February — the fund grew by less than $100K in its final two months. Data verified April 17, 2026.
                         </div>
                     `;
                 } else {
